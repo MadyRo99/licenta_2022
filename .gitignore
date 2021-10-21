@@ -1,0 +1,7 @@
+.idea
+
+polihelp_api/node_modules
+polihelp_api/package-lock.json
+
+polihelp_frontend/node_modules
+polihelp_frontend/package-lock.json
