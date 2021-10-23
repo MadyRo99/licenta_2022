@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const cors = require("cors");
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
@@ -10,10 +11,7 @@ const bodyParser = require("body-parser");
 
 const app = express();
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
-
+app.use(cors());
 app.use(logger('dev'));
 app.use(express.json());
 app.use(bodyParser.json());
@@ -28,8 +26,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 //   console.log("Drop and re-sync db.");
 // });
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/api/', indexRouter);
+app.use('/api/users', usersRouter);
+
+// set port, listen for requests
+const PORT = 8080;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}.`);
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

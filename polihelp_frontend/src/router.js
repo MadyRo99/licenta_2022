@@ -9,7 +9,12 @@ export default new Router({
         {
             path: "/",
             name: "newsfeed",
-            component: () => import("./components/Newsfeed")
+            component: () => import("./components/views/HelloWorld")
+        },
+        {
+            path: "/login",
+            name: "login",
+            component: () => import("./components/views/authentication/Login")
         }
     ]
 });
