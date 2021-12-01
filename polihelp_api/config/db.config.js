@@ -1,11 +1,11 @@
 module.exports = {
-    HOST: "localhost",
+    HOST: "0.0.0.0",
     USER: "postgres",
-    PASSWORD: "123",
-    DB: "testdb",
+    PASSWORD: "Welcome",
+    DB: "licenta",
     dialect: "postgres",
     pool: {
-        max: 500,
+        max: 10,
         min: 0,
         acquire: 30000,
         idle: 10000

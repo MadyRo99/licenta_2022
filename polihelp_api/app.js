@@ -19,8 +19,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-//const db = require("./models");
-//db.sequelize.sync();
+const db = require("./models");
+db.sequelize.sync();
 
 // db.sequelize.sync({ force: true }).then(() => {
 //   console.log("Drop and re-sync db.");
@@ -48,7 +48,7 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.json('error');
 });
 
 module.exports = app;
