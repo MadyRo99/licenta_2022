@@ -2,16 +2,18 @@
   <div id="register">
     <ValidationObserver v-slot="{ handleSubmit }">
       <form name="form" @submit.prevent="handleSubmit(onSubmit)" method="POST">
+
         <div class="loader">
           <bounce-loader class="custom-class" :loading="successful" :color="loader.color" :size="loader.size" :margin="loader.margin"></bounce-loader>
         </div>
+
         <h1 style="padding-top: 25px;">Inregistrare</h1>
 
         <fieldset>
           <legend style="margin: 25px 0px;"><span class="number">1</span> Detalii Personale</legend>
 
           <label for="lastName">Nume:</label>
-          <ValidationProvider name="lastName" :rules="{ min: 2, max: 20, regex: /^[A-Za-z-\s]*$/ }">
+          <ValidationProvider name="lastName" :rules="{ required: true, min: 2, max: 20, regex: /^[A-Za-z-\s]*$/ }">
             <div slot-scope="{ errors }" class="input-group">
               <input v-model="user.lastName" type="text" class="input--style-3" id="lastName" name="lastName" placeholder="Nume" :disabled="successful">
               <p class="errorMessage">{{ errors[0] }}</p>
@@ -19,7 +21,7 @@
           </ValidationProvider>
 
           <label for="firstName">Prenume:</label>
-          <ValidationProvider name="firstName" :rules="{ min: 2, max: 20, regex: /^[A-Za-z-\s]*$/ }">
+          <ValidationProvider name="firstName" :rules="{ required: true, min: 2, max: 20, regex: /^[A-Za-z-\s]*$/ }">
             <div slot-scope="{ errors }" class="input-group">
               <input v-model="user.firstName" type="text" class="input--style-3" id="firstName" name="firstName" placeholder="Prenume" :disabled="successful">
               <p class="errorMessage"> {{ errors[0] }}</p>
@@ -140,16 +142,6 @@ export default {
     this.populateFaculties();
     this.populateRoles();
   },
-  computed: {
-    loggedIn() {
-      return this.$store.state.auth.status.loggedIn
-    }
-  },
-  mounted() {
-    if (this.loggedIn) {
-      this.$router.push('/profile');
-    }
-  },
   methods: {
     populateFaculties: function () {
       UtilsService.getFaculties().then(faculties => {
@@ -176,13 +168,15 @@ export default {
 
             if (this.successful) {
               setTimeout(() => {
-                this.$router.push("login")
+                this.$store.dispatch('auth/setUserDetails', data, {root: true}).then(() => {
+                  this.$router.push("profile")
+                })
               }, 2500)
             }
           },
           () => {
             this.successful = false
-            this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la inregistrarea utilizatorului.")
+            this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la inregistrare.")
           }
       )
     },
@@ -193,7 +187,7 @@ export default {
         toaster: toaster,
         solid: true,
         appendToast: true,
-        autoHideDelay: 50000000
+        autoHideDelay: 5000
       })
     },
   }

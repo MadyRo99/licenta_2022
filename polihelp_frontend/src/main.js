@@ -42,19 +42,6 @@ Vue.component('ValidationObserver', ValidationObserver);
 
 Vue.config.productionTip = false
 
-// Ensure we checked auth before each page load.
-router.beforeEach((to, from, next) => {
-  const publicPages = ['/login', '/register', '/home']
-  const authRequired = !publicPages.includes(to.path)
-  const loggedIn = localStorage.getItem('user')
-
-  if (authRequired && !loggedIn) {
-    next('/login')
-  } else {
-    next()
-  }
-});
-
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin)
 

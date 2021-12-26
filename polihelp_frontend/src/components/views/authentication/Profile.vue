@@ -1,6 +1,6 @@
 <template>
   <div id="profile">
-
+    <h1>CEVA</h1>
   </div>
 </template>
 

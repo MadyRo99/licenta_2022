@@ -2,14 +2,10 @@ import http from "../../http-common"
 
 class AuthService {
     login(user) {
-        return http.get("users/signin", {
-            username: user.username,
+        return http.post("users/signin", {
+            email: user.email,
             password: user.password
         }).then(response => {
-            if (response.data.accessToken) {
-                localStorage.setItem('user', JSON.stringify(response.data))
-            }
-
             return response.data
         })
     }
@@ -28,7 +24,7 @@ class AuthService {
     }
 
     logout() {
-        localStorage.removeItem('user')
+        localStorage.removeItem('jwt')
     }
 }
 

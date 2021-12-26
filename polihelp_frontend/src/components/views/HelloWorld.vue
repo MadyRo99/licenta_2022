@@ -1,7 +1,5 @@
 <template>
-  <div class="HelloWorld">
-    <p>Hello | <router-link to="/login">Login</router-link></p>
-  </div>
+  <div class="HelloWorld"></div>
 </template>
 
 <script>
@@ -11,7 +9,7 @@ export default {
     msg: String
   },
   created() {
-    console.log("home")
+    //
   }
 }
 </script>

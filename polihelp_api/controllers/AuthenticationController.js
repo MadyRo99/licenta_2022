@@ -14,29 +14,48 @@ exports.signup = (req) => {
         if (!_.isEmpty(user)) {
             return {
                 success: false,
+                data: null,
                 message: "Adresa de email este deja in folosinta!"
             }
         }
 
-        let createUser = User.build({
+        let userDetails = {
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             email: req.body.email,
-            password: bcrypt.hashSync(req.body.password, 8),
             gender: req.body.gender,
             year: req.body.year,
+            status: 1,
             roleId: req.body.roleId,
             facultyId: req.body.facultyId
+        }
+
+        let createUser = User.build({
+            ...userDetails,
+            password: bcrypt.hashSync(req.body.password, 8)
         })
 
-        return createUser.save().then(() => {
+        return createUser.save().then((result) => {
+            let token = jwt.sign({
+                id: result.id,
+                ...userDetails
+            }, config.secret, {
+                expiresIn: 86400
+            })
+
             return {
                 success: true,
+                userDetails: {
+                    id: result.id,
+                    ...userDetails
+                },
+                token: token,
                 message: "Utilizatorul a fost creat cu succes!"
             }
         }).catch(() => {
             return {
                 success: false,
+                data: null,
                 message: "A aparut o eroare la inregistrarea utilizatorului."
             }
         })
@@ -44,13 +63,17 @@ exports.signup = (req) => {
 }
 
 exports.signin = (req, res) => {
-    User.findOne({
+    return User.findOne({
         where: {
             email: req.body.email
         }
     }).then(user => {
         if (!user) {
-            return res.status(404).send({ message: "Utilizatorul nu a putut fi gasit." })
+            return {
+                success: false,
+                data: null,
+                message: "Utilizatorul nu a putut fi gasit."
+            }
         }
 
         let passwordIsValid = bcrypt.compareSync(
@@ -59,33 +82,42 @@ exports.signin = (req, res) => {
         )
 
         if (!passwordIsValid) {
-            return res.status(401).send({
-                accessToken: null,
-                message: "Parola este greșită."
-            })
+            return {
+                success: false,
+                data: null,
+                message: "Numele de utilizator sau parola introdusa este gresita."
+            }
         }
 
-        let token = jwt.sign({ id: user.id }, config.secret, {
-            expiresIn: 86400 // 24 hours
+        let userDetails = {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            gender: user.gender,
+            year: user.year,
+            status: user.status,
+            roleId: user.roleId,
+            facultyId: user.facultyId
+        }
+
+        let token = jwt.sign({
+            ...userDetails
+        }, config.secret, {
+            expiresIn: 86400
         })
 
-        let authorities = []
-        user.getRoles().then(roles => {
-            for (let i = 0; i < roles.length; i++) {
-                authorities.push("ROLE_" + roles[i].name.toUpperCase())
-            }
-
-            res.status(200).send({
-                id: user.id,
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                city: req.body.city,
-                email: user.email,
-                roles: authorities,
-                accessToken: token
-            })
-        })
+        return {
+            success: true,
+            userDetails: userDetails,
+            token: token,
+            message: "Autentificarea a fost realizata cu succes."
+        }
     }).catch(err => {
-        res.status(500).send({ message: err.message })
+        return {
+            success: false,
+            data: null,
+            message: err.message
+        }
     })
 }
