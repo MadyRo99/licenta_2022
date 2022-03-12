@@ -24,12 +24,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER
         },
         authorId: {
-            type: DataTypes.INTEGER,
-            references: {
-                model: 'users',
-                key: 'id',
-                onDelete: 'cascade'
-            }
+            type: DataTypes.INTEGER
         },
         content: {
             type: DataTypes.TEXT,

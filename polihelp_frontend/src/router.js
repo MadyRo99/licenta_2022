@@ -12,15 +12,7 @@ const router = new Router({
         {
             path: "/",
             name: "newsfeed",
-            component: () => import("./components/views/HelloWorld"),
-            meta: {
-                middleware: authRequired
-            }
-        },
-        {
-            path: "/home",
-            name: "newsfeed",
-            component: () => import("./components/views/HelloWorld"),
+            component: () => import("./components/views/NewsFeed"),
             meta: {
                 middleware: authRequired
             }
@@ -58,7 +50,7 @@ const router = new Router({
         {
             path: "/profile",
             name: "profile",
-            component: () => import("./components/views/authentication/Profile"),
+            component: () => import("./components/views/Profile"),
             meta: {
                 middleware: authRequired
             }

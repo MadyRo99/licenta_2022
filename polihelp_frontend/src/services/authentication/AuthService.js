@@ -16,7 +16,19 @@ class AuthService {
             firstName: user.firstName,
             email:    user.email,
             password: user.password,
-            gender: user.gender,
+            year: user.year,
+            roleId: user.roleId,
+            facultyId: user.facultyId
+        })
+    }
+
+    update(user) {
+        return http.post("users/update", {
+            id: user.id,
+            token: localStorage.getItem("jwt"),
+            lastName: user.lastName,
+            firstName: user.firstName,
+            email: user.email,
             year: user.year,
             roleId: user.roleId,
             facultyId: user.facultyId

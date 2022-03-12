@@ -1,0 +1,13 @@
+.postContentForm textarea {
+    height: 68px;
+    padding: 10px;
+}
+
+.postContentText {
+    padding-top: 10px;
+}
+
+.postContentForm button {
+    padding-top: 12px;
+    height: 50px;
+}

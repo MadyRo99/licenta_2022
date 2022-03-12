@@ -1,7 +1,7 @@
 <template>
   <div id="register">
     <ValidationObserver v-slot="{ handleSubmit }">
-      <form name="form" @submit.prevent="handleSubmit(onSubmit)" method="POST">
+      <form name="form auth" @submit.prevent="handleSubmit(onSubmit)" method="POST">
 
         <div class="loader">
           <bounce-loader class="custom-class" :loading="successful" :color="loader.color" :size="loader.size" :margin="loader.margin"></bounce-loader>
@@ -44,21 +44,6 @@
             </div>
           </ValidationProvider>
 
-          <ValidationProvider name="gender" rules="required">
-            <div slot-scope="{ errors }" class="input-group">
-              <div style="width: 100%; margin-bottom: 10px;">
-                <input v-model="user.gender" type="radio" id="masculin" value="Masculin" name="gender" :disabled="successful">
-                <label for="masculin" class="light">Masculin</label>
-              </div>
-              <br>
-              <div style="width: 100%; margin-bottom: 20px;">
-                <input v-model="user.gender" type="radio" id="feminin" value="Feminin" name="gender" :disabled="successful">
-                <label for="feminin" class="light">Feminin</label>
-              </div>
-              <p class="errorMessage">{{ errors[0] }}</p>
-            </div>
-          </ValidationProvider>
-
         </fieldset>
 
         <fieldset>
@@ -88,7 +73,7 @@
           <ValidationProvider v-if="user.roleId == 1 || user.roleId == 2" name="year" rules="required">
             <div slot-scope="{ errors }" class="input-group">
               <select v-model="user.year" name="year" id="year" :disabled="successful">
-                <option v-if="user.roleId == 1" value="Anul 1 Licenta">Anul 1 Licenta</option>
+                <option v-if="user.roleId === 1" value="Anul 1 Licenta">Anul 1 Licenta</option>
                 <option v-if="user.roleId === 1" value="Anul 2 Licenta">Anul 2 Licenta</option>
                 <option v-if="user.roleId === 1" value="Anul 3 Licenta">Anul 3 Licenta</option>
                 <option v-if="user.roleId === 1" value="Anul 4 Licenta">Anul 4 Licenta</option>
@@ -123,7 +108,6 @@ export default {
         firstName: '',
         email: '',
         password: '',
-        gender: '',
         year: '',
         roleId: '',
         facultyId: ''
@@ -189,7 +173,7 @@ export default {
         appendToast: true,
         autoHideDelay: 5000
       })
-    },
+    }
   }
 }
 </script>

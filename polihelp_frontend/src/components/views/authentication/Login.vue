@@ -1,7 +1,7 @@
 <template>
   <div id="login">
     <ValidationObserver v-slot="{ handleSubmit }">
-      <form name="form" @submit.prevent="handleSubmit(onSubmit)" method="POST">
+      <form name="form auth" @submit.prevent="handleSubmit(onSubmit)" method="POST">
 
         <div class="loader">
           <bounce-loader class="custom-class" :loading="successful" :color="loader.color" :size="loader.size" :margin="loader.margin"></bounce-loader>
@@ -69,7 +69,7 @@ export default {
 
             if (this.successful) {
               this.$store.dispatch('auth/setUserDetails', data, {root: true}).then(() => {
-                this.$router.push("profile")
+                this.$router.push("/")
               })
             }
           },

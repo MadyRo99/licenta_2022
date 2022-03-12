@@ -10,12 +10,7 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       authorId: {
-        type: Sequelize.INTEGER,
-        references: {
-          model: 'users',
-          key: 'id',
-          onDelete: 'cascade'
-        }
+        type: Sequelize.INTEGER
       },
       content: {
         type: Sequelize.TEXT,

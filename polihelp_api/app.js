@@ -1,22 +1,23 @@
-const createError = require('http-errors');
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
-const cors = require("cors");
+const createError = require('http-errors')
+const express = require('express')
+const path = require('path')
+const cookieParser = require('cookie-parser')
+const logger = require('morgan')
+const cors = require("cors")
 
-const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
-const bodyParser = require("body-parser");
+const indexRouter = require('./routes/index')
+const usersRouter = require('./routes/users')
+const postsRouter = require ('./routes/posts')
+const bodyParser = require("body-parser")
 
 const app = express();
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(bodyParser.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(logger('dev'))
+app.use(express.json())
+app.use(bodyParser.json())
+app.use(express.urlencoded({ extended: false }))
+app.use(cookieParser())
+app.use(express.static(path.join(__dirname, 'public')))
 
 // Add headers before the routes are defined
 app.use(function (req, res, next) {
@@ -46,6 +47,7 @@ db.sequelize.sync();
 // });
 
 app.use('/api/', indexRouter);
+app.use('/api/posts', postsRouter);
 app.use('/api/users', usersRouter);
 
 // set port, listen for requests

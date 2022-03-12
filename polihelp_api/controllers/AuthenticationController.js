@@ -2,6 +2,7 @@ const db = require("../models")
 const config = require("../config/auth/config")
 const _ = require("lodash")
 const User = db.users
+const Faculty = db.faculties
 
 let jwt = require("jsonwebtoken")
 let bcrypt = require("bcryptjs")
@@ -23,11 +24,9 @@ exports.signup = (req) => {
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             email: req.body.email,
-            gender: req.body.gender,
             year: req.body.year,
             status: 1,
             roleId: req.body.roleId,
-            facultyId: req.body.facultyId
         }
 
         let createUser = User.build({
@@ -38,7 +37,8 @@ exports.signup = (req) => {
         return createUser.save().then((result) => {
             let token = jwt.sign({
                 id: result.id,
-                ...userDetails
+                ...userDetails,
+                faculty: result.faculty
             }, config.secret, {
                 expiresIn: 86400
             })
@@ -64,6 +64,7 @@ exports.signup = (req) => {
 
 exports.signin = (req, res) => {
     return User.findOne({
+        include: Faculty,
         where: {
             email: req.body.email
         }
@@ -94,11 +95,10 @@ exports.signin = (req, res) => {
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
-            gender: user.gender,
             year: user.year,
             status: user.status,
             roleId: user.roleId,
-            facultyId: user.facultyId
+            faculty: user.faculty
         }
 
         let token = jwt.sign({
@@ -113,6 +113,88 @@ exports.signin = (req, res) => {
             token: token,
             message: "Autentificarea a fost realizata cu succes."
         }
+    }).catch(err => {
+        return {
+            success: false,
+            data: null,
+            message: err.message
+        }
+    })
+}
+
+exports.update = (req, res) => {
+    return User.findOne({
+        where: {
+            id: req.body.id
+        }
+    }).then(user => {
+        if (!user) {
+            return {
+                success: false,
+                data: null,
+                message: "Utilizatorul nu a putut fi gasit."
+            }
+        }
+
+        let userDetails = {
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            email: req.body.email,
+            year: req.body.year,
+            roleId: req.body.roleId,
+            facultyId: req.body.facultyId
+        }
+
+        return User.update(userDetails, {
+            where: {
+                id: req.body.id
+            },
+            returning: true,
+            plain: true
+        }).then((updatedObject) => {
+            if (!_.isNil(updatedObject)) {
+                return Faculty.findByPk(userDetails.facultyId, {raw: true}).then((faculty) => {
+                    if (_.isNil(faculty)) {
+                        return {
+                            success: false,
+                            message: "A aparut o problema pe parcursul actualizarii profilului."
+                        }
+                    } else {
+                        delete userDetails.facultyId
+
+                        userDetails = {
+                            ...userDetails,
+                            id: user.id,
+                            status: user.status,
+                            faculty: faculty
+                        }
+
+                        let token = jwt.sign({
+                            ...userDetails
+                        }, config.secret, {
+                            expiresIn: 86400
+                        })
+
+                        return {
+                            success: true,
+                            userDetails: userDetails,
+                            token: token,
+                            message: "Actualizarea profilului a fost realizata cu succes."
+                        }
+                    }
+                }).catch(err => {
+                    return {
+                        success: false,
+                        message: "A aparut o problema pe parcursul actualizarii profilului."
+                    }
+                })
+            } else {
+                return {
+                    success: false,
+                    message: "A aparut o problema pe parcursul actualizarii profilului."
+                }
+            }
+        })
     }).catch(err => {
         return {
             success: false,
