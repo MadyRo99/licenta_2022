@@ -48,7 +48,7 @@ const router = new Router({
             }
         },
         {
-            path: "/profile",
+            path: "/profile/:id",
             name: "profile",
             component: () => import("./components/views/Profile"),
             meta: {

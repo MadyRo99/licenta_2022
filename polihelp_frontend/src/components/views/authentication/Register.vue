@@ -62,7 +62,7 @@
           <label for="role">Rol</label>
           <ValidationProvider name="role" rules="required">
             <div slot-scope="{ errors }" class="input-group">
-              <select v-model="user.roleId" name="role" id="role" :disabled="successful">
+              <select v-model="user.roleId" name="role" id="role" :disabled="successful" @change="user.year = null">
                 <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option>
               </select>
               <p class="errorMessage">{{ errors[0] }}</p>
@@ -95,8 +95,6 @@
 <script>
 import UtilsService from "../../../services/UtilsService"
 import { BounceLoader } from '@saeris/vue-spinners';
-
-require('@/assets/css/auth.css')
 
 export default {
   name: 'Register',
@@ -153,7 +151,7 @@ export default {
             if (this.successful) {
               setTimeout(() => {
                 this.$store.dispatch('auth/setUserDetails', data, {root: true}).then(() => {
-                  this.$router.push("profile")
+                  this.$router.push("/")
                 })
               }, 2500)
             }

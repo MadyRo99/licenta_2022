@@ -3,9 +3,36 @@ const config = require("../config/auth/config")
 const _ = require("lodash")
 const User = db.users
 const Faculty = db.faculties
+const UserInterest = db.userInterests
 
 let jwt = require("jsonwebtoken")
 let bcrypt = require("bcryptjs")
+
+exports.getUser = (req) => {
+    return User.findOne({
+        where: {
+            id: req.params.userId
+        },
+        attributes: ['id', 'firstName', 'lastName', 'email', 'year', 'status', 'roleId', 'facultyId'],
+        raw: true
+    }).then(user => {
+        if (_.isEmpty(user)) {
+            return {
+                success: false,
+                data: null,
+                message: "Utilizatorul nu a putut fi gasit"
+            }
+        }
+
+        console.log(user)
+
+        return {
+            success: true,
+            userDetails: user,
+            message: "Utilizatorul a fost returnat cu succes!"
+        }
+    })
+}
 
 exports.signup = (req) => {
     return User.findAll({
@@ -35,22 +62,44 @@ exports.signup = (req) => {
         })
 
         return createUser.save().then((result) => {
-            let token = jwt.sign({
-                id: result.id,
-                ...userDetails,
-                faculty: result.faculty
-            }, config.secret, {
-                expiresIn: 86400
-            })
+            if (!_.isNil(result)) {
+                return Faculty.findByPk(req.body.facultyId, {raw: true}).then((faculty) => {
+                    if (_.isNil(faculty)) {
+                        return {
+                            success: false,
+                            message: "A aparut o problema pe parcursul inregistrarii utilizatorului."
+                        }
+                    } else {
+                        userDetails = {
+                            ...userDetails,
+                            id: result.id,
+                            faculty: faculty
+                        }
 
-            return {
-                success: true,
-                userDetails: {
-                    id: result.id,
-                    ...userDetails
-                },
-                token: token,
-                message: "Utilizatorul a fost creat cu succes!"
+                        let token = jwt.sign({
+                            ...userDetails
+                        }, config.secret, {
+                            expiresIn: 86400
+                        })
+
+                        return {
+                            success: true,
+                            userDetails: userDetails,
+                            token: token,
+                            message: "Utilizatorul a fost creat cu succes!"
+                        }
+                    }
+                }).catch(err => {
+                    return {
+                        success: false,
+                        message: "A aparut o problema pe parcursul inregistrarii utilizatorului."
+                    }
+                })
+            } else {
+                return {
+                    success: false,
+                    message: "A aparut o problema pe parcursul inregistrarii utilizatorului."
+                }
             }
         }).catch(() => {
             return {
@@ -193,6 +242,34 @@ exports.update = (req, res) => {
                     success: false,
                     message: "A aparut o problema pe parcursul actualizarii profilului."
                 }
+            }
+        })
+    }).catch(err => {
+        return {
+            success: false,
+            data: null,
+            message: err.message
+        }
+    })
+}
+
+exports.updateInterests = (req, res) => {
+    return UserInterest.destroy({
+        where: {
+            userId: req.body.userId
+        }
+    }).then(() => {
+        let newInterests = req.body.interests.map((interest, index) => ({ interest: interest, userId: req.body.userId }))
+        return UserInterest.bulkCreate(newInterests).then((rs) => {
+            return {
+                success: true,
+                message: "Actualizarea intereselor a fost realizata cu succes."
+            }
+        }).catch(err => {
+            return {
+                success: false,
+                data: null,
+                message: err.message
             }
         })
     }).catch(err => {

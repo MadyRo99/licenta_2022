@@ -37,6 +37,16 @@ export const auth = {
                 }
             )
         },
+        updateInterests(_, updateInterests) {
+            return AuthService.updateInterests(updateInterests).then(
+                response => {
+                    return Promise.resolve(response.data)
+                },
+                error => {
+                    return Promise.reject(error)
+                }
+            )
+        },
         setUserDetails({ commit }, details) {
             commit('setUser', details.userDetails)
             commit('setToken', details.token)

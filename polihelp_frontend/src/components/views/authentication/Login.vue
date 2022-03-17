@@ -38,8 +38,6 @@
 <script>
 import { BounceLoader } from '@saeris/vue-spinners';
 
-require('@/assets/css/auth.css')
-
 export default {
   name: 'Login',
   components: { BounceLoader },

@@ -35,6 +35,14 @@ class AuthService {
         })
     }
 
+    updateInterests(updateInterests) {
+        return http.post("users/updateInterests", {
+            userId: updateInterests.userId,
+            interests: updateInterests.interests,
+            token: localStorage.getItem("jwt")
+        })
+    }
+
     logout() {
         localStorage.removeItem('jwt')
     }

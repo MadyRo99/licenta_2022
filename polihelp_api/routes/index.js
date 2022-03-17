@@ -17,17 +17,25 @@ router.get('/getAll', function(req, res, next) {
   })
 });
 
-router.get('/getAllRoles', function(req, res, next) {
-  utilsController.getAllRoles().then(roles => {
-    res.json(roles)
+router.get('/getAllFaculties', function(req, res, next) {
+  utilsController.getAllFaculties().then(faculties => {
+    res.json(faculties)
   }).catch(err => {
     return res.status(400).json( {err} )
   })
 });
 
-router.get('/getAllFaculties', function(req, res, next) {
-  utilsController.getAllFaculties().then(faculties => {
-    res.json(faculties)
+router.get('/getInterestsByUser/:userId', function(req, res, next) {
+  utilsController.getInterestsByUser(req).then(interests => {
+    res.json(interests)
+  }).catch(err => {
+    return res.status(400).json( {err} )
+  })
+});
+
+router.get('/getAllRoles', function(req, res, next) {
+  utilsController.getAllRoles().then(roles => {
+    res.json(roles)
   }).catch(err => {
     return res.status(400).json( {err} )
   })

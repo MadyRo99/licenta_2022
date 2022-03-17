@@ -12,6 +12,9 @@ import { required, regex, oneOf, email, min, max } from "vee-validate/dist/rules
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
+import "@/assets/css/auth.css"
+import "@/assets/css/style.css"
+
 extend('required', {
   ...required,
   message: 'Campul de deasupra nu poate fi gol'

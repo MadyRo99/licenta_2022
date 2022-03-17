@@ -8,24 +8,23 @@
         </div>
         <div class="profile-user-info">
           <h1>{{ this.$store.state.auth.user.lastName }} {{ this.$store.state.auth.user.firstName }}</h1>
-          <h2>Student la {{ this.$store.state.auth.user.faculty.name }}</h2>
-          <h2>{{ this.$store.state.auth.user.year }}</h2>
-          <h2>
+          <h2>{{ displayRoleType }} la {{ this.$store.state.auth.user.faculty.name }}</h2>
+          <h2 v-if="this.$store.state.auth.user.roleId != 3 ">{{ this.$store.state.auth.user.year }}</h2>
+          <h2 v-if="interests.length">
             Interese:
-            <span class="badge badge-secondary">IT</span>
-            <span class="badge badge-secondary">Circuite</span>
+            <span class="badge badge-secondary" v-for="interest in interests" :key="randomNumber(interest)">{{ interest.interest }}</span>
           </h2>
         </div>
       </div>
     </div>
     <div class="after-profile">
       <div class="profile-buttons">
-        <div class="row justify-content-center">
+        <div class="row justify-content-center" v-if="user.id">
           <div class="col-6">
             <button type="button" class="btn btn-primary" v-b-modal.edit-profile-modal>Editeaza Profilul</button>
           </div>
           <div class="col-6">
-            <button type="button" class="btn btn-primary">Editeaza Interesele</button>
+            <button type="button" class="btn btn-primary" v-b-modal.edit-interests-modal>Editeaza Interesele</button>
           </div>
         </div>
         <div class="row justify-content-center">
@@ -39,7 +38,6 @@
       </div>
       <div class="profile-user-posts">
         <Post></Post>
-        <Post></Post>
       </div>
     </div>
     <b-modal id="modal-1" title="Prieteni" class="profile-friends-modal" size="lg" :show-close="false" data-backdrop="static" data-keyboard="false" centered scrollable ok-only ok-variant="secondary" ok-title="Inchide">
@@ -49,11 +47,30 @@
             <img src="@/assets/images/upb_register.jpg" alt="default-user.png">
           </div>
           <div class="friend-details">
-            <a href="#"><h1>Mihai Petre</h1></a>
+            <div>
+              <a href="#" style="float: left;"><h1>Mihai Petre</h1></a>
+              <button type="button" class="btn btn-danger btn-sm" style="float: right; width: 75px; height: 30px; position: relative; top: -5px;">Sterge</button>
+              <div class="clearfix"></div>
+            </div>
             <h2>Student la Facultatea de Electronica, Telecomunicatii si Tehnologia Informatiei | Anul II - Licenta</h2>
           </div>
           <div class="clearfix"></div>
         </div>
+        <div class="profile-friend">
+          <div class="img-container">
+            <img src="@/assets/images/upb_register.jpg" alt="default-user.png">
+          </div>
+          <div class="friend-details">
+            <div>
+              <a href="#" style="float: left;"><h1>Mihai Petre</h1></a>
+              <button type="button" class="btn btn-danger btn-sm" style="float: right; width: 75px; height: 30px; position: relative; top: -5px;">Sterge</button>
+              <div class="clearfix"></div>
+            </div>
+            <h2>Student la Facultatea de Electronica | Anul II - Licenta</h2>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+
       </div>
     </b-modal>
     <b-modal
@@ -63,38 +80,27 @@
         cancel-title="Anuleaza"
         centered
         scrollable
-        no-close-on-backdrop
         size="lg"
         @ok="editProfileSubmit"
         title="Actualizare Profil"
     >
-      <ValidationProvider v-slot="{ handleSubmit }">
-        <form name="form auth" @submit.prevent="handleSubmit(editProfileSubmit)" method="POST" style="background-color: #FFFFFF;">
+        <form name="form auth" @submit.stop.prevent="editProfileSubmit" method="POST" style="background-color: #FFFFFF;">
           <fieldset>
             <legend style="margin: 25px 0px;"><span class="number">1</span> Detalii Personale</legend>
 
             <label for="lastName">Nume:</label>
-            <ValidationProvider name="lastName" :rules="{ required: true, min: 2, max: 20, regex: /^[A-Za-z-\s]*$/ }">
-              <div slot-scope="{ errors }" class="input-group">
-                <input v-model="user.lastName" type="text" class="input--style-3" id="lastName" name="lastName" placeholder="Nume" :disabled="successful">
-                <p class="errorMessage">{{ errors[0] }}</p>
-              </div>
+            <ValidationProvider>
+              <input v-model="user.lastName" type="text" class="input--style-3" id="lastName" name="lastName" placeholder="Nume">
             </ValidationProvider>
 
             <label for="firstName">Prenume:</label>
-            <ValidationProvider name="firstName" :rules="{ required: true, min: 2, max: 20, regex: /^[A-Za-z-\s]*$/ }">
-              <div slot-scope="{ errors }" class="input-group">
-                <input v-model="user.firstName" type="text" class="input--style-3" id="firstName" name="firstName" placeholder="Prenume" :disabled="successful">
-                <p class="errorMessage"> {{ errors[0] }}</p>
-              </div>
+            <ValidationProvider>
+              <input v-model="user.firstName" type="text" class="input--style-3" id="firstName" name="firstName" placeholder="Prenume">
             </ValidationProvider>
 
             <label for="email">Email:</label>
-            <ValidationProvider name="email" rules="required|email|max:50">
-              <div slot-scope="{ errors }" class="input-group">
-                <input v-model="user.email" type="email" class="input--style-3" id="email" name="email" placeholder="Email" :disabled="successful">
-                <p class="errorMessage">{{ errors[0] }}</p>
-              </div>
+            <ValidationProvider>
+              <input v-model="user.email" type="email" class="input--style-3" id="email" name="email" placeholder="Email">
             </ValidationProvider>
 
           </fieldset>
@@ -103,43 +109,46 @@
             <legend style="margin: 25px 0px;"><span class="number">2</span> Detalii Facultate</legend>
 
             <label for="faculty">Facultate</label>
-            <ValidationProvider name="faculty" rules="required">
-              <div slot-scope="{ errors }" class="input-group">
-                <select v-model="user.facultyId" name="faculty" id="faculty" :disabled="successful">
-                  <option v-for="faculty in faculties" :key="faculty.id" :value="faculty.id">{{ faculty.name }}</option>
-                </select>
-                <p class="errorMessage">{{ errors[0] }}</p>
-              </div>
+            <ValidationProvider>
+              <select v-model="user.facultyId" name="faculty" id="faculty">
+                <option v-for="faculty in faculties" :key="faculty.id" :value="faculty.id">{{ faculty.name }}</option>
+              </select>
             </ValidationProvider>
 
-            <label for="role">Rol</label>
-            <ValidationProvider name="role" rules="required">
-              <div slot-scope="{ errors }" class="input-group">
-                <select v-model="user.roleId" name="role" id="role" :disabled="successful">
-                  <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option>
-                </select>
-                <p class="errorMessage">{{ errors[0] }}</p>
-              </div>
+            <label for="role" v-if="user.roleId != 3">Rol</label>
+            <ValidationProvider v-if="user.roleId != 3">
+              <select v-model="user.roleId" name="role" id="role" @change="user.year = null">
+                <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option>
+              </select>
             </ValidationProvider>
 
-            <label v-if="user.roleId == 1 || user.roleId == 2" for="year">An</label>
-            <ValidationProvider v-if="user.roleId == 1 || user.roleId == 2" name="year" rules="required">
-              <div slot-scope="{ errors }" class="input-group">
-                <select v-model="user.year" name="year" id="year" :disabled="successful">
-                  <option v-if="user.roleId === 1" value="Anul 1 Licenta">Anul 1 Licenta</option>
-                  <option v-if="user.roleId === 1" value="Anul 2 Licenta">Anul 2 Licenta</option>
-                  <option v-if="user.roleId === 1" value="Anul 3 Licenta">Anul 3 Licenta</option>
-                  <option v-if="user.roleId === 1" value="Anul 4 Licenta">Anul 4 Licenta</option>
-                  <option v-if="user.roleId === 2" value="Anul 1 Master">Anul 1 Master</option>
-                  <option v-if="user.roleId === 2" value="Anul 2 Master">Anul 2 Master</option>
-                </select>
-                <p class="errorMessage">{{ errors[0] }}</p>
-              </div>
+            <label v-if="user.roleId != 3" for="year">An</label>
+            <ValidationProvider v-if="user.roleId != 3">
+              <select v-model="user.year" name="year" id="year">
+                <option v-if="user.roleId == 1" value="Anul 1 Licenta">Anul 1 Licenta</option>
+                <option v-if="user.roleId == 1" value="Anul 2 Licenta">Anul 2 Licenta</option>
+                <option v-if="user.roleId == 1" value="Anul 3 Licenta">Anul 3 Licenta</option>
+                <option v-if="user.roleId == 1" value="Anul 4 Licenta">Anul 4 Licenta</option>
+                <option v-if="user.roleId == 2" value="Anul 1 Master">Anul 1 Master</option>
+                <option v-if="user.roleId == 2" value="Anul 2 Master">Anul 2 Master</option>
+              </select>
             </ValidationProvider>
 
           </fieldset>
         </form>
-      </ValidationProvider>
+    </b-modal>
+    <b-modal
+        id="edit-interests-modal"
+        ref="modal"
+        ok-title="Salveaza"
+        cancel-title="Anuleaza"
+        centered
+        scrollable
+        @ok="submitUpdateInterests"
+        size="md"
+        title="Actualizare Interese"
+    >
+      <TagInput :user-id="user.id" :initial-tags="interests" ref="interestsTagInput" @interests-updated="updateDisplayedInterests"></TagInput>
     </b-modal>
   </div>
 </template>
@@ -147,10 +156,11 @@
 <script>
 import Post from "../Post";
 import UtilsService from "../../services/UtilsService";
+import TagInput from "../utils/TagInput";
 
 export default {
   name: 'Profile',
-  components: { Post },
+  components: { Post, TagInput },
   data() {
     return {
       user: {
@@ -162,19 +172,58 @@ export default {
         roleId: this.$store.state.auth.user.roleId,
         facultyId: this.$store.state.auth.user.faculty.id
       },
+      userProfile: {
+
+      },
       faculties: [],
-      roles: [],
-      successful: false
+      interests: [],
+      roles: []
+    }
+  },
+  computed: {
+    displayRoleType() {
+      if (this.$store.state.auth.user.roleId == 1) {
+        return "Student"
+      }
+
+      if (this.$store.state.auth.user.roleId == 2) {
+        return "Masterand"
+      }
+
+      if (this.$store.state.auth.user.roleId == 3) {
+        return "Profesor"
+      }
+
+      return ""
     }
   },
   created() {
-    this.populateFaculties();
-    this.populateRoles();
+    if (this.$route.params.id != this.$store.state.auth.user.id) {
+      this.populateUser()
+    }
+    this.populateFaculties()
+    this.populateInterests()
+    this.populateRoles()
   },
   methods: {
+    populateUser: function () {
+      let userId = 1
+      UtilsService.getUserProfileDetails(userId).then(user => {
+        this.userProfile = JSON.parse(JSON.stringify(user.data.userDetails))
+      }).catch(() => {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea paginii.")
+      })
+    },
     populateFaculties: function () {
       UtilsService.getFaculties().then(faculties => {
         this.faculties = JSON.parse(JSON.stringify(faculties.data))
+      }).catch(() => {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea paginii.")
+      })
+    },
+    populateInterests: function () {
+      UtilsService.getInterests(this.user.id).then(interests => {
+        this.interests = JSON.parse(JSON.stringify(interests.data))
       }).catch(() => {
         this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea paginii.")
       })
@@ -184,29 +233,77 @@ export default {
         this.roles = JSON.parse(JSON.stringify(roles.data))
         this.roles = this.roles.filter(role => role.name !== "Profesor")
       }).catch(() => {
-        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea paginii.")
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea paginii")
       })
     },
-    editProfileSubmit: function () {
-      this.$store.dispatch('auth/update', this.user, {root: true}).then(
-          data => {
-            this.successful = data.success
-
-            let toastVariant = this.successful ? 'success' : 'danger'
-            let toastTitle = this.successful ? "Succes" : "Eroare"
-            this.toast('b-toaster-bottom-right', toastVariant, toastTitle, data.message)
-
-            if (this.successful) {
-              this.$store.dispatch('auth/setUserDetails', data, {root: true}).then(() => {
-                this.$bvModal.hide('edit-profile-modal')
-              })
+    editProfileSubmit(event) {
+      event.preventDefault()
+      if (this.validateUpdateUserInput()) {
+        this.$store.dispatch('auth/update', this.user, {root: true}).then(
+            data => {
+              let toastVariant = data.success ? 'success' : 'danger'
+              let toastTitle = data.success ? "Succes" : "Eroare"
+              this.toast('b-toaster-bottom-right', toastVariant, toastTitle, data.message)
+              if (data.success) {
+                this.$store.dispatch('auth/setUserDetails', data, {root: true}).then(() => {
+                  this.$bvModal.hide('edit-profile-modal')
+                })
+              }
+            },
+            () => {
+              this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la actualizarea profilului.")
             }
-          },
-          () => {
-            this.successful = false
-            this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la actualizarea profilului.")
-          }
-      )
+        )
+      }
+    },
+    submitUpdateInterests() {
+      this.$refs.interestsTagInput.editInterestsSubmit()
+    },
+    updateDisplayedInterests(payload) {
+      this.interests = payload.interests.map((interest) => ({ interest: interest }))
+    },
+    validateUpdateUserInput() {
+      if (this.user.lastName.length < 2 || this.user.lastName.length > 20) {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "Prenumele trebuie sa contina intre 2 si 20 de caractere")
+        return false
+      }
+
+      if (!/^[A-Za-z-\s]*$/.test(this.user.lastName)) {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", 'Prenumele poate sa contina doar litere, spatii sau caracterul "-"')
+        return false
+      }
+
+      if (this.user.firstName.length < 2 || this.user.firstName.length > 20) {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "Numele trebuie sa contina intre 2 si 20 de caractere")
+        return false
+      }
+
+      if (!/^[A-Za-z-\\s]*$/.test(this.user.firstName)) {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", 'Numele poate sa contina doar litere, spatii sau caracterul "-"')
+        return false
+      }
+
+      if (!this.validateEmail(this.user.email)) {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", 'Campul pentru email nu este valid')
+        return false
+      }
+
+      if (!this.user.facultyId) {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", 'Campul pentru facultate este obligatoriu')
+        return false
+      }
+
+      if (!this.user.roleId) {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", 'Campul pentru rol este obligatoriu')
+        return false
+      }
+
+      if (this.user.roleId != 3 && !this.user.year) {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", 'Campul pentru an este invalid')
+        return false
+      }
+
+      return true
     },
     toast: function (toaster, variant, title, message) {
       this.$bvToast.toast(message, {
@@ -215,8 +312,13 @@ export default {
         toaster: toaster,
         solid: true,
         appendToast: true,
-        autoHideDelay: 5000
+        autoHideDelay: 3000
       })
+    },
+    validateEmail(email) {
+      return String(email)
+          .toLowerCase()
+          .match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)
     },
     inlineBgImage() {
       let src = "/images/default-user-background.jpg";
@@ -225,6 +327,9 @@ export default {
       return {
         backgroundImage: `url("${bgImage}")`,
       }
+    },
+    randomNumber() {
+      return Math.floor(Math.random() * (10000 - 1 + 1) + 1)
     }
   }
 }
@@ -307,6 +412,8 @@ export default {
 
 .profile-friend-modal-container {
   max-height: 350px;
+  width: 100%;
+  margin: 0 auto;
   overflow: auto;
 }
 
@@ -324,20 +431,21 @@ export default {
 
 .profile-friend .img-container {
   position: relative;
-  width: 50px;
-  height: 50px;
+  width: 65px;
+  height: 65px;
   float: left;
 }
 
 .profile-friend img {
   position: absolute;
-  width: 50px;
-  height: 50px;
+  width: 65px;
+  height: 65px;
   border-radius: 150px;
 }
 
 .friend-details {
   float: left;
+  width: 700px;
   padding-left: 10px;
   padding-top: 5px;
 }
