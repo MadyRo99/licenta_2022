@@ -7,9 +7,9 @@
           <img src="@/assets/images/upb_register.jpg" alt="default-user.png">
         </div>
         <div class="profile-user-info">
-          <h1>{{ this.$store.state.auth.user.lastName }} {{ this.$store.state.auth.user.firstName }}</h1>
-          <h2>{{ displayRoleType }} la {{ this.$store.state.auth.user.faculty.name }}</h2>
-          <h2 v-if="this.$store.state.auth.user.roleId != 3 ">{{ this.$store.state.auth.user.year }}</h2>
+          <h1>{{ user.lastName }} {{ user.firstName }}</h1>
+          <h2>{{ displayRoleType }} la {{ user.faculty.name }}</h2>
+          <h2 v-if="user.roleId != 3 ">{{ user.year }}</h2>
           <h2 v-if="interests.length">
             Interese:
             <span class="badge badge-secondary" v-for="interest in interests" :key="randomNumber(interest)">{{ interest.interest }}</span>
@@ -19,12 +19,20 @@
     </div>
     <div class="after-profile">
       <div class="profile-buttons">
-        <div class="row justify-content-center" v-if="user.id">
+        <div class="row justify-content-center" v-if="user.id == this.$store.state.auth.user.id">
           <div class="col-6">
             <button type="button" class="btn btn-primary" v-b-modal.edit-profile-modal>Editeaza Profilul</button>
           </div>
           <div class="col-6">
             <button type="button" class="btn btn-primary" v-b-modal.edit-interests-modal>Editeaza Interesele</button>
+          </div>
+        </div>
+        <div class="row justify-content-center" v-else>
+          <div class="col-6">
+            <button type="button" class="btn btn-primary">Adauga Prieten</button>
+          </div>
+          <div class="col-6">
+            <button type="button" class="btn btn-primary">Chat</button>
           </div>
         </div>
         <div class="row justify-content-center">
@@ -37,7 +45,7 @@
         </div>
       </div>
       <div class="profile-user-posts">
-        <Post></Post>
+        <Post v-for="post in posts" :key="post.id" :postData="post" :postUserData="postsUserData" :userLikes="userLikes"></Post>
       </div>
     </div>
     <b-modal id="modal-1" title="Prieteni" class="profile-friends-modal" size="lg" :show-close="false" data-backdrop="static" data-keyboard="false" centered scrollable ok-only ok-variant="secondary" ok-title="Inchide">
@@ -156,6 +164,7 @@
 <script>
 import Post from "../Post";
 import UtilsService from "../../services/UtilsService";
+import PostsService from "../../services/PostsService";
 import TagInput from "../utils/TagInput";
 
 export default {
@@ -164,55 +173,94 @@ export default {
   data() {
     return {
       user: {
-        id: this.$store.state.auth.user.id,
-        lastName: this.$store.state.auth.user.lastName,
-        firstName: this.$store.state.auth.user.firstName,
-        email: this.$store.state.auth.user.email,
-        year: this.$store.state.auth.user.year,
-        roleId: this.$store.state.auth.user.roleId,
-        facultyId: this.$store.state.auth.user.faculty.id
-      },
-      userProfile: {
-
+        id: null,
+        lastName: null,
+        firstName: null,
+        email: null,
+        year: null,
+        roleId: null,
+        facultyId: null,
+        faculty: Object
       },
       faculties: [],
       interests: [],
-      roles: []
+      roles: [],
+      posts: [],
+      postsUserData: {},
+      userLikes: []
     }
   },
   computed: {
     displayRoleType() {
-      if (this.$store.state.auth.user.roleId == 1) {
+      if (this.user.roleId == 1) {
         return "Student"
       }
 
-      if (this.$store.state.auth.user.roleId == 2) {
+      if (this.user.roleId == 2) {
         return "Masterand"
       }
 
-      if (this.$store.state.auth.user.roleId == 3) {
+      if (this.user.roleId == 3) {
         return "Profesor"
       }
 
       return ""
     }
   },
-  created() {
-    if (this.$route.params.id != this.$store.state.auth.user.id) {
-      this.populateUser()
+  watch: {
+    '$route.params': {
+      handler() {
+        this.initializeComponent()
+      },
+      immediate: true,
     }
-    this.populateFaculties()
-    this.populateInterests()
-    this.populateRoles()
   },
   methods: {
-    populateUser: function () {
-      let userId = 1
-      UtilsService.getUserProfileDetails(userId).then(user => {
-        this.userProfile = JSON.parse(JSON.stringify(user.data.userDetails))
+    initializeComponent: function () {
+      if (this.$route.params.id == this.$store.state.auth.user.id) {
+        this.populateUserFromSession()
+      } else {
+        this.populateUserFromDatabase()
+      }
+      this.populateFaculties()
+      this.populateInterests()
+      this.populateRoles()
+      this.loadUserPosts()
+    },
+    populateUserFromDatabase: function () {
+      UtilsService.getUserProfileDetails(this.$route.params.id).then(user => {
+        this.user = JSON.parse(JSON.stringify(user.data.userDetails))
+
+        this.postsUserData = {
+          lastName: user.data.userDetails.lastName,
+          firstName: user.data.userDetails.firstName,
+          facultyName: user.data.userDetails.faculty.name,
+          displayRoleType: this.displayRoleType,
+          year: user.data.userDetails.year
+        }
       }).catch(() => {
         this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea paginii.")
       })
+    },
+    populateUserFromSession: function () {
+      this.user = {
+        id: this.$store.state.auth.user.id,
+        lastName: this.$store.state.auth.user.lastName,
+        firstName: this.$store.state.auth.user.firstName,
+        email: this.$store.state.auth.user.email,
+        year: this.$store.state.auth.user.year,
+        roleId: this.$store.state.auth.user.roleId,
+        facultyId: this.$store.state.auth.user.faculty.id,
+        faculty: this.$store.state.auth.user.faculty
+      }
+
+      this.postsUserData = {
+        lastName: this.$store.state.auth.user.lastName,
+        firstName: this.$store.state.auth.user.firstName,
+        facultyName: this.$store.state.auth.user.faculty.name,
+        displayRoleType: this.displayRoleType,
+        year: this.$store.state.auth.user.year
+      }
     },
     populateFaculties: function () {
       UtilsService.getFaculties().then(faculties => {
@@ -222,7 +270,7 @@ export default {
       })
     },
     populateInterests: function () {
-      UtilsService.getInterests(this.user.id).then(interests => {
+      UtilsService.getInterests(this.$route.params.id).then(interests => {
         this.interests = JSON.parse(JSON.stringify(interests.data))
       }).catch(() => {
         this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea paginii.")
@@ -232,6 +280,14 @@ export default {
       UtilsService.getRoles().then(roles => {
         this.roles = JSON.parse(JSON.stringify(roles.data))
         this.roles = this.roles.filter(role => role.name !== "Profesor")
+      }).catch(() => {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea paginii")
+      })
+    },
+    loadUserPosts: function () {
+      PostsService.getUserPosts({authorId: this.$route.params.id, userId: this.$store.state.auth.user.id}).then(posts => {
+        this.posts = JSON.parse(JSON.stringify(posts.postDetails))
+        this.userLikes = JSON.parse(JSON.stringify(posts.userLikes))
       }).catch(() => {
         this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea paginii")
       })

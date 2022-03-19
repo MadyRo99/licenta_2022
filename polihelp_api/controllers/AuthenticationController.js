@@ -10,13 +10,12 @@ let bcrypt = require("bcryptjs")
 
 exports.getUser = (req) => {
     return User.findOne({
+        include: Faculty,
         where: {
             id: req.params.userId
-        },
-        attributes: ['id', 'firstName', 'lastName', 'email', 'year', 'status', 'roleId', 'facultyId'],
-        raw: true
+        }
     }).then(user => {
-        if (_.isEmpty(user)) {
+        if (!user) {
             return {
                 success: false,
                 data: null,
@@ -26,9 +25,20 @@ exports.getUser = (req) => {
 
         console.log(user)
 
+        let userDetails = {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            year: user.year,
+            status: user.status,
+            roleId: user.roleId,
+            faculty: user.faculty
+        }
+
         return {
             success: true,
-            userDetails: user,
+            userDetails: userDetails,
             message: "Utilizatorul a fost returnat cu succes!"
         }
     })

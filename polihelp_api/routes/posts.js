@@ -10,4 +10,22 @@ router.post('/createPost', authJwt.verifyToken, function(req, res, next) {
     })
 })
 
+router.post('/getUserPosts/:authorId', authJwt.verifyToken, function(req, res, next) {
+    postsController.getUserPosts(req).then((response) => {
+        res.json(response)
+    })
+})
+
+router.post('/likePost/:postId', authJwt.verifyToken, function(req, res, next) {
+    postsController.likePost(req).then((response) => {
+        res.json(response)
+    })
+})
+
+router.post('/deletePost/:postId', authJwt.verifyToken, function(req, res, next) {
+    postsController.deletePost(req).then((response) => {
+        res.json(response)
+    })
+})
+
 module.exports = router

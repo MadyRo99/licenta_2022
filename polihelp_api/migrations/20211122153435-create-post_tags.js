@@ -10,7 +10,8 @@ module.exports = {
         type: Sequelize.INTEGER,
         references: {
           model: 'posts',
-          key: 'id'
+          key: 'id',
+          onDelete: 'cascade'
         }
       }
     });

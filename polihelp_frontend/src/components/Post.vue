@@ -7,20 +7,21 @@
             <img src="@/assets/images/default-user.png" alt="default-user.png">
           </div>
           <div class="post-user-info">
-            <h1>Mihai Petre</h1>
-            <h2>23 octombrie la 10:00</h2>
+            <h1>{{ postUserData.lastName }} {{ postUserData.firstName }}</h1>
+            <h2>{{ postCreatedAt }}</h2>
           </div>
           <div class="clearfix"></div>
         </div>
         <div class="post-social-info">
           <div class="post-likes">
-            <h2>2,3 K</h2>
-            <div class="img-container-like">
-              <img src="@/assets/images/like.png" alt="like.png">
+            <h2>{{ this.postLikes }}</h2>
+            <div class="img-container-like" @click="this.likePost">
+              <img v-if="postLiked" src="@/assets/images/like_filled.png" alt="like.png">
+              <img v-else src="@/assets/images/like.png" alt="like.png">
             </div>
           </div>
           <div class="post-comments">
-            <h2>2,3 K</h2>
+            <h2>2</h2>
             <div class="img-container-like">
               <img src="@/assets/images/comment.png" alt="comment.png">
             </div>
@@ -30,35 +31,124 @@
         <div class="clearfix"></div>
         <div class="post-faculty">
           <h3>
-            Student la Facultatea de Electronica, Telecomunicatii si Tehnologia Informatiei
+            {{ postUserData.displayRoleType }} la {{ postUserData.facultyName }}
             <br>
-            Anul II - Licenta
+            {{ postUserData.year }}
           </h3>
         </div>
-        <p>
-          Postat in <b>Grupul Facultatii ETTI</b>
-        </p>
+<!--        <p>-->
+<!--          Postat in <b>Grupul Facultatii ETTI</b>-->
+<!--        </p>-->
         <hr color="#FFFFFF">
         <p>
-          Spitalele sunt arhipline, medicii, personalul medical lucreaza non stop, locuri la terapie intensiva nu mai sunt disponibile. Vorbim despre o catastrofa, o situatie disperata în care am primit deja sprijin de la opt state europene. Avem ajutor din toate paraile, dar nimeni nu poate sa se vaccineze în locul nostru, asta trebuie sa o facem noi! Nu exista alta solutie decât vaccinarea si trebuie sa fim seriosi si sa acceptam acest lucru. Dragi români, mergeti si va vaccinati, sa nu ajungeti la spital, si sa nu dati boala mai departe, sa terminam odata cu aceasta pandemie. În toate statele din vestul Europei, pandemia a fost domolita prin vaccinare.
+          {{ postData.content }}
         </p>
-        <button type="button" class="btn btn-danger">Sterge Postarea</button>
+        <button v-if="postData.authorId === this.$store.state.auth.user.id" type="button" class="btn btn-danger"
+        @click="this.deletePost">Sterge Postarea</button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import PostsService from "../services/PostsService";
+
 export default {
   name: 'Post',
+  props: {
+    postData: Object,
+    postUserData: Object,
+    userLikes: Array
+  },
   data() {
     return {
-      data: ""
+      postCreatedAt: "",
+      postLiked: false,
+      postLikes: 0,
+      blockLikeButton: false,
     }
   },
-  computed: {
+  created() {
+    this.postLikes = this.postData.postLikes
+    this.formatDate()
+    this.checkIfLiked()
   },
   methods: {
+    formatDate: function () {
+      let date = new Date(this.postData.createdAt)
+      let month
+      switch (date.getMonth()) {
+        case 1:
+          month = 'Ianuarie'
+          break
+        case 2:
+          month = 'Februarie'
+          break
+        case 3:
+          month = 'Martie'
+          break
+        case 4:
+          month = 'Aprilie'
+          break
+        case 5:
+          month = 'Mai'
+          break
+        case 6:
+          month = 'Iunie'
+          break
+        case 7:
+          month = 'Iulie'
+          break
+        case 8:
+          month = 'August'
+          break
+        case 9:
+          month = 'Septembrie'
+          break
+        case 10:
+          month = 'Octombrie'
+          break
+        case 11:
+          month = 'Noiembrie'
+          break
+        case 12:
+          month = 'Decembrie'
+          break
+      }
+
+      this.postCreatedAt = date.getDay() + " " + month + " " + date.getFullYear() + " la " + date.getHours() + ":" + date.getMinutes()
+    },
+    likePost: function () {
+      this.blockLikeButton = true
+      PostsService.likePost({userId: this.$store.state.auth.user.id, postId: this.postData.id}).then(response => {
+        if (response.success === true) {
+          if (response.liked === true) {
+            this.postLiked = true
+            this.postLikes = parseInt(this.postLikes) + 1
+          } else {
+            this.postLiked = false
+            this.postLikes = parseInt(this.postLikes) - 1
+          }
+          this.blockLikeButton = false
+        }
+      }).catch(() => {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare in cursul aprecierii postarii")
+      })
+    },
+    checkIfLiked: function () {
+      if (this.userLikes.some(e => e.postId == this.postData.id)) {
+        this.postLiked = true
+      }
+    },
+    deletePost: function () {
+      PostsService.deletePost(this.postData.id).then(response => {
+        if (response.success === true) {
+          this.toast('b-toaster-bottom-right', "success", "Succes", "Postarea a fost stearsa cu succes");
+        }
+      }).catch(() => {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare in cursul stergerii postarii")
+      })
+    }
   }
 }
 </script>
@@ -90,6 +180,7 @@ export default {
 
 .img-container-like {
   position: relative;
+  cursor: pointer;
   float: left;
   margin-right: 20px;
   width: 40px;
@@ -126,9 +217,9 @@ export default {
 }
 
 .post-social-info h2 {
-  font-size: 12px;
-  margin-left: 7.5px;
+  font-size: 13px;
   font-weight: bold;
+  margin-left: 16px;
 }
 
 .post-user .post-user-info h1 {
