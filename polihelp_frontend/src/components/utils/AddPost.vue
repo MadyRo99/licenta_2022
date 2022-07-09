@@ -40,16 +40,11 @@ export default {
   methods: {
     onSubmit: function () {
       PostsService.createPost(this.postContent).then(data => {
-          // DE VERIFICAT FOREIGN KEY IN MODEL/MIGRATION ... EL CAUTA DUPA USERID
           this.successful = !!data.success
 
           let toastVariant = this.successful ? 'success' : 'danger'
           let toastTitle = this.successful ? "Succes" : "Eroare"
           this.toast('b-toaster-bottom-right', toastVariant, toastTitle, data.message);
-
-          if (this.successful) {
-            console.log("Postare succes!")
-          }
       }).catch(() => {
         this.successful = false
         this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare in timpul postarii.")

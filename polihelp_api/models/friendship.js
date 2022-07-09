@@ -15,6 +15,12 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     Friendship.init({
+        id: {
+            allowNull: false,
+            autoIncrement: true,
+            primaryKey: true,
+            type: DataTypes.INTEGER
+        },
         firstUserId: {
             type: DataTypes.INTEGER,
             references: {
@@ -42,9 +48,10 @@ module.exports = (sequelize, DataTypes) => {
         deniedDate: {
             type: DataTypes.DATE,
             default: null
-        }
+        },
     }, {
         sequelize,
+        timestamps: false,
         modelName: 'friendship',
     });
 

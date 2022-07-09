@@ -34,4 +34,28 @@ router.post('/updateInterests', authJwt.verifyToken, function(req, res, next) {
   })
 })
 
+router.post('/addFriend', authJwt.verifyToken, function(req, res, next) {
+  authController.addFriend(req).then((response) => {
+    res.json(response)
+  })
+})
+
+router.post('/removeFriend', authJwt.verifyToken, function(req, res, next) {
+  authController.removeFriend(req).then((response) => {
+    res.json(response)
+  })
+})
+
+router.post('/getNrOfFriends/:userId', authJwt.verifyToken, function(req, res, next) {
+  authController.getNrOfFriends(req).then((response) => {
+    res.json(response)
+  })
+})
+
+router.post('/getFriends/:userId', authJwt.verifyToken, function(req, res, next) {
+  authController.getFriends(req).then((response) => {
+    res.json(response)
+  })
+})
+
 module.exports = router

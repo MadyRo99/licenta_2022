@@ -1,5 +1,7 @@
 const db = require("../models")
-const {Sequelize} = require("sequelize");
+const { Sequelize } = require("sequelize");
+const { QueryTypes } = require('sequelize');
+const _ = require("lodash")
 const Post = db.posts
 const PostLikes = db.postLikes
 
@@ -20,6 +22,25 @@ exports.createPost = (req) => {
             message: "A aparut o eroare in timpul postarii."
         }
     })
+}
+
+exports.getNewsFeedPosts = async (req) => {
+    let sql = "SELECT \"posts\".\"id\" AS \"id\", \"posts\".\"content\", \"posts\".\"createdAt\", \"users\".\"id\" AS \"authorId\", \"users\".\"firstName\", \"users\".\"lastName\", \"users\".\"facultyId\", \"users\".\"roleId\", \"users\".\"year\" FROM \"posts\" JOIN \"users\" ON \"posts\".\"authorId\" = \"users\".\"id\" ORDER BY \"posts\".\"createdAt\" DESC offset " + req.body.offset + " limit 5;"
+    let posts = await db.sequelize.query(sql, {type: QueryTypes.SELECT})
+
+    return Promise.all(posts.map(post =>
+        PostLikes.findAll({
+            where: {
+                postId: post.id
+            },
+            raw: true
+        }).then(postLikes => {
+            let index = posts.map(function(e) { return e.id; }).indexOf(post.id);
+            posts[index].userLikes = postLikes
+            return post
+        }).catch(err => {
+            console.log("Eroare la selectarea like-urilor: " + err)
+        })))
 }
 
 exports.likePost = (req) => {
@@ -65,17 +86,23 @@ exports.likePost = (req) => {
 }
 
 exports.deletePost = (req) => {
-    Post.destroy({
+    return PostLikes.destroy({
         where: {
-            id: req.params.postId
+            postId: req.params.postId
         }
+    }).then(() => {
+        return Post.destroy({
+            where: {
+                id: req.params.postId
+            }
+        }).then(() => {
+            return {
+                success: true,
+                liked: false,
+                message: "Postarea a fost stearsa cu succes."
+            }
+        })
     })
-
-    return {
-        success: true,
-        liked: false,
-        message: "Postarea a fost stearsa cu succes."
-    }
 }
 
 exports.getUserPosts = (req) => {
@@ -100,7 +127,7 @@ exports.getUserPosts = (req) => {
         raw: true
     }).then((posts) => {
         return PostLikes.findAll({
-            attributes: ['postId'],
+            attributes: ['postId', 'userId'],
             where: {
                 userId: req.body.userId
             },

@@ -36,9 +36,6 @@
             {{ postUserData.year }}
           </h3>
         </div>
-<!--        <p>-->
-<!--          Postat in <b>Grupul Facultatii ETTI</b>-->
-<!--        </p>-->
         <hr color="#FFFFFF">
         <p>
           {{ postData.content }}
@@ -78,45 +75,45 @@ export default {
       let date = new Date(this.postData.createdAt)
       let month
       switch (date.getMonth()) {
-        case 1:
+        case 0:
           month = 'Ianuarie'
           break
-        case 2:
+        case 1:
           month = 'Februarie'
           break
-        case 3:
+        case 2:
           month = 'Martie'
           break
-        case 4:
+        case 3:
           month = 'Aprilie'
           break
-        case 5:
+        case 4:
           month = 'Mai'
           break
-        case 6:
+        case 5:
           month = 'Iunie'
           break
-        case 7:
+        case 6:
           month = 'Iulie'
           break
-        case 8:
+        case 7:
           month = 'August'
           break
-        case 9:
+        case 8:
           month = 'Septembrie'
           break
-        case 10:
+        case 9:
           month = 'Octombrie'
           break
-        case 11:
+        case 10:
           month = 'Noiembrie'
           break
-        case 12:
+        case 11:
           month = 'Decembrie'
           break
       }
 
-      this.postCreatedAt = date.getDay() + " " + month + " " + date.getFullYear() + " la " + date.getHours() + ":" + date.getMinutes()
+      this.postCreatedAt = date.getDate() + " " + month + " " + date.getFullYear() + " la " + date.getHours() + ":" + date.getMinutes()
     },
     likePost: function () {
       this.blockLikeButton = true
@@ -136,17 +133,28 @@ export default {
       })
     },
     checkIfLiked: function () {
-      if (this.userLikes.some(e => e.postId == this.postData.id)) {
+      if (this.userLikes.some(e => ((e.postId == this.postData.id) && (e.userId == this.$store.state.auth.user.id)))) {
         this.postLiked = true
       }
     },
     deletePost: function () {
       PostsService.deletePost(this.postData.id).then(response => {
         if (response.success === true) {
+          this.$emit('post-deleted', { postId: this.postData.id })
           this.toast('b-toaster-bottom-right', "success", "Succes", "Postarea a fost stearsa cu succes");
         }
       }).catch(() => {
         this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare in cursul stergerii postarii")
+      })
+    },
+    toast: function (toaster, variant, title, message) {
+      this.$bvToast.toast(message, {
+        title: title,
+        variant: variant,
+        toaster: toaster,
+        solid: true,
+        appendToast: true,
+        autoHideDelay: 5000
       })
     }
   }

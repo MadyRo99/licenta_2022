@@ -10,6 +10,15 @@ class PostsService {
         })
     }
 
+    getNewsFeedPosts(data) {
+        return http.post("posts/getNewsFeedPosts/", {
+            offset: data.offset,
+            token: localStorage.getItem("jwt")
+        }).then(response => {
+            return response.data
+        })
+    }
+
     getUserPosts(data) {
         return http.post("posts/getUserPosts/" + data.authorId, {
             userId: data.userId,

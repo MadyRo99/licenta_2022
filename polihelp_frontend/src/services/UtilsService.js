@@ -1,8 +1,9 @@
 import http from "../http-common";
 
 class UtilsService {
-    getUserProfileDetails(userId) {
-        return http.post("users/getUser/" + userId, {
+    getUserProfileDetails(data) {
+        return http.post("users/getUser/" + data.userId, {
+            authUser: data.authUser,
             token: localStorage.getItem("jwt"),
         })
     }

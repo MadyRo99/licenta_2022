@@ -29,7 +29,9 @@
         </div>
         <div class="row justify-content-center" v-else>
           <div class="col-6">
-            <button type="button" class="btn btn-primary">Adauga Prieten</button>
+            <button type="button" class="btn btn-primary" @click="addFriend(false)" v-if="isFriend == false">Adauga Prieten</button>
+            <button type="button" class="btn btn-primary" @click="addFriend(true)" v-else-if="isFriend == true && isPending == false">Sterge Prieten</button>
+            <button type="button" class="btn btn-primary" @click="addFriend(true)" v-else-if="isFriend == true && isPending == true">Anuleaza Cerere Prietenie</button>
           </div>
           <div class="col-6">
             <button type="button" class="btn btn-primary">Chat</button>
@@ -37,48 +39,37 @@
         </div>
         <div class="row justify-content-center">
           <div class="col-6">
-            <button type="button" class="btn btn-primary" v-b-modal.modal-1>Prieteni <span class="badge badge-light">2</span></button>
+            <button type="button" class="btn btn-primary" v-b-modal.modal-1 @click="loadFriends">Prieteni <span class="badge badge-light">{{ nrOfFriends }}</span></button>
           </div>
           <div class="col-6">
-            <button type="button" class="btn btn-primary">Grupuri <span class="badge badge-light">1</span></button>
+            <button type="button" class="btn btn-primary">Grupuri <span class="badge badge-light">{{ nrOfGroups }}</span></button>
           </div>
         </div>
       </div>
       <div class="profile-user-posts">
-        <Post v-for="post in posts" :key="post.id" :postData="post" :postUserData="postsUserData" :userLikes="userLikes"></Post>
+        <Post v-for="post in posts" :key="post.id" :postData="post" :postUserData="postsUserData" :userLikes="userLikes" @post-deleted="removePostFromList"></Post>
       </div>
     </div>
     <b-modal id="modal-1" title="Prieteni" class="profile-friends-modal" size="lg" :show-close="false" data-backdrop="static" data-keyboard="false" centered scrollable ok-only ok-variant="secondary" ok-title="Inchide">
-      <div class="profile-friend-modal-container">
-        <div class="profile-friend">
+      <div class="profile-friend-modal-container" v-if="nrOfFriends != 0">
+        <div class="profile-friend" v-for="friend in friendsData" :key="friend.id">
           <div class="img-container">
             <img src="@/assets/images/upb_register.jpg" alt="default-user.png">
           </div>
           <div class="friend-details">
             <div>
-              <a href="#" style="float: left;"><h1>Mihai Petre</h1></a>
-              <button type="button" class="btn btn-danger btn-sm" style="float: right; width: 75px; height: 30px; position: relative; top: -5px;">Sterge</button>
+              <router-link :to="{path: '/profile/' + friend.id}">
+                <h1>{{ friend.firstName }} {{ friend.lastName }}</h1>
+              </router-link>
+              <button type="button" class="btn btn-danger btn-sm" style="width: 75px; height: 30px;" @click="removeFriend(friend.id)">Sterge</button>
               <div class="clearfix"></div>
             </div>
-            <h2>Student la Facultatea de Electronica, Telecomunicatii si Tehnologia Informatiei | Anul II - Licenta</h2>
           </div>
           <div class="clearfix"></div>
         </div>
-        <div class="profile-friend">
-          <div class="img-container">
-            <img src="@/assets/images/upb_register.jpg" alt="default-user.png">
-          </div>
-          <div class="friend-details">
-            <div>
-              <a href="#" style="float: left;"><h1>Mihai Petre</h1></a>
-              <button type="button" class="btn btn-danger btn-sm" style="float: right; width: 75px; height: 30px; position: relative; top: -5px;">Sterge</button>
-              <div class="clearfix"></div>
-            </div>
-            <h2>Student la Facultatea de Electronica | Anul II - Licenta</h2>
-          </div>
-          <div class="clearfix"></div>
-        </div>
-
+      </div>
+      <div v-else>
+        <p>Nu exista prieteni de afisat.</p>
       </div>
     </b-modal>
     <b-modal
@@ -163,6 +154,7 @@
 
 <script>
 import Post from "../Post";
+import UserService from "../../services/authentication/UserService";
 import UtilsService from "../../services/UtilsService";
 import PostsService from "../../services/PostsService";
 import TagInput from "../utils/TagInput";
@@ -180,8 +172,14 @@ export default {
         year: null,
         roleId: null,
         facultyId: null,
-        faculty: Object
+        faculty: Object,
+        friendshipData: Object
       },
+      isFriend: false,
+      isPending: false,
+      nrOfFriends: 0,
+      nrOfGroups: 0,
+      friendsData: Array,
       faculties: [],
       interests: [],
       roles: [],
@@ -217,18 +215,20 @@ export default {
   },
   methods: {
     initializeComponent: function () {
+      this.$bvModal.hide("modal-1")
       if (this.$route.params.id == this.$store.state.auth.user.id) {
         this.populateUserFromSession()
       } else {
         this.populateUserFromDatabase()
       }
+      this.populateNrOfFriends()
       this.populateFaculties()
       this.populateInterests()
       this.populateRoles()
       this.loadUserPosts()
     },
     populateUserFromDatabase: function () {
-      UtilsService.getUserProfileDetails(this.$route.params.id).then(user => {
+      UtilsService.getUserProfileDetails({userId: this.$route.params.id, authUser: this.$store.state.auth.user.id}).then(user => {
         this.user = JSON.parse(JSON.stringify(user.data.userDetails))
 
         this.postsUserData = {
@@ -237,6 +237,15 @@ export default {
           facultyName: user.data.userDetails.faculty.name,
           displayRoleType: this.displayRoleType,
           year: user.data.userDetails.year
+        }
+
+        if (this.user.friendshipData.exists === true) {
+          this.isFriend = true
+          if (this.user.friendshipData.approved === true) {
+            this.isPending = false
+          } else {
+            this.isPending = true
+          }
         }
       }).catch(() => {
         this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea paginii.")
@@ -261,6 +270,13 @@ export default {
         displayRoleType: this.displayRoleType,
         year: this.$store.state.auth.user.year
       }
+    },
+    populateNrOfFriends: function() {
+      UserService.getNrOfFriends({ userId: this.$route.params.id}).then(nrOfFriends => {
+        this.nrOfFriends = nrOfFriends.data.data
+      }).catch(() => {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea paginii.")
+      })
     },
     populateFaculties: function () {
       UtilsService.getFaculties().then(faculties => {
@@ -292,6 +308,48 @@ export default {
         this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea paginii")
       })
     },
+    loadFriends: function () {
+      UserService.getFriends({userId: this.$route.params.id}).then(response => {
+        if (response.data.success) {
+          this.friendsData = response.data.data
+        } else {
+          this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea listei de prieteni")
+        }
+      }).catch(() => {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea listei de prieteni")
+      })
+    },
+    addFriend(isDelete) {
+      UserService.addFriend({addFriendUserId: this.user.id, authUserId: this.$store.state.auth.user.id, isDelete: isDelete}).then(response => {
+        if (response.success) {
+          if (isDelete) {
+            this.isFriend = false
+            this.isPending = false
+            if (this.nrOfFriends > 0) {
+              this.nrOfFriends--
+            }
+          } else {
+            this.isFriend = true
+            this.isPending = true
+          }
+        }
+      }).catch(() => {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la trimiterea cererii de prietenie")
+      })
+    },
+    removeFriend(removeFriendUserId) {
+      UserService.removeFriend({removeFriendUserId: removeFriendUserId, authUserId: this.$store.state.auth.user.id}).then(response => {
+        if (response.success) {
+          let deleteIndex = this.friendsData.findIndex((friend) => friend.id == removeFriendUserId)
+          this.friendsData.splice(deleteIndex, 1);
+          this.nrOfFriends--
+        } else {
+          this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la stergerea prieteniei")
+        }
+      }).catch(() => {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la stergerea prieteniei")
+      })
+    },
     editProfileSubmit(event) {
       event.preventDefault()
       if (this.validateUpdateUserInput()) {
@@ -317,6 +375,11 @@ export default {
     },
     updateDisplayedInterests(payload) {
       this.interests = payload.interests.map((interest) => ({ interest: interest }))
+    },
+    removePostFromList(postData) {
+      this.posts = this.posts.filter(function( post ) {
+        return post.id !== postData.postId;
+      });
     },
     validateUpdateUserInput() {
       if (this.user.lastName.length < 2 || this.user.lastName.length > 20) {
@@ -502,7 +565,7 @@ export default {
 .friend-details {
   float: left;
   width: 700px;
-  padding-left: 10px;
+  padding-left: 20px;
   padding-top: 5px;
 }
 

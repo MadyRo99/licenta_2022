@@ -10,6 +10,12 @@ router.post('/createPost', authJwt.verifyToken, function(req, res, next) {
     })
 })
 
+router.post('/getNewsFeedPosts', authJwt.verifyToken, function(req, res, next) {
+    postsController.getNewsFeedPosts(req).then((response) => {
+        res.json(response)
+    })
+})
+
 router.post('/getUserPosts/:authorId', authJwt.verifyToken, function(req, res, next) {
     postsController.getUserPosts(req).then((response) => {
         res.json(response)

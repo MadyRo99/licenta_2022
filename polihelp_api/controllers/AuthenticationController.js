@@ -4,6 +4,8 @@ const _ = require("lodash")
 const User = db.users
 const Faculty = db.faculties
 const UserInterest = db.userInterests
+const Friendships = db.friendships
+const { Op } = require('@sequelize/core');
 
 let jwt = require("jsonwebtoken")
 let bcrypt = require("bcryptjs")
@@ -23,8 +25,6 @@ exports.getUser = (req) => {
             }
         }
 
-        console.log(user)
-
         let userDetails = {
             id: user.id,
             firstName: user.firstName,
@@ -36,12 +36,262 @@ exports.getUser = (req) => {
             faculty: user.faculty
         }
 
+        return Friendships.findOne({
+            where: {
+                [Op.or]: [
+                    {
+                        firstUserId: {
+                            [Op.eq]: parseInt(req.params.userId)
+                        },
+                        secondUserId: {
+                            [Op.eq]: parseInt(req.body.authUser)
+                        }
+                    },
+                    {
+                        firstUserId: {
+                            [Op.eq]: parseInt(req.body.authUser)
+                        },
+                        secondUserId: {
+                            [Op.eq]: parseInt(req.params.userId)
+                        }
+                    }
+                ]
+            },
+            raw: true
+        }).then(friendship => {
+            let friendshipData
+            if (friendship) {
+                friendshipData = {
+                    exists: true,
+                    approved: !!friendship.approveDate
+                }
+            } else {
+                friendshipData = {
+                    exists: false,
+                    approved: false
+                }
+            }
+
+            userDetails = {...userDetails, friendshipData: friendshipData}
+
+            return {
+                success: true,
+                userDetails: userDetails,
+                message: "Utilizatorul a fost returnat cu succes!"
+            }
+        }).catch(error => {
+            return {
+                success: false,
+                message: "Utilizatorul nu a putut fi retras din baza de date!"
+            }
+        })
+    }).catch(err => {
         return {
-            success: true,
-            userDetails: userDetails,
-            message: "Utilizatorul a fost returnat cu succes!"
+            success: false,
+            message: "Utilizatorul nu a putut fi retras din baza de date!"
         }
     })
+}
+
+exports.removeFriend = (req) => {
+    return Friendships.destroy({
+        where: {
+            [Op.or]: [
+                {
+                    firstUserId: {
+                        [Op.eq]: parseInt(req.body.removeFriendUserId)
+                    },
+                    secondUserId: {
+                        [Op.eq]: parseInt(req.body.authUserId)
+                    }
+                },
+                {
+                    firstUserId: {
+                        [Op.eq]: parseInt(req.body.authUserId)
+                    },
+                    secondUserId: {
+                        [Op.eq]: parseInt(req.body.removeFriendUserId)
+                    }
+                }
+            ]
+        }
+    }).then(() => {
+        return {
+            success: true,
+            message: "Prietenia a fost anulata cu succes"
+        }
+    }).catch(() => {
+        return {
+            success: false,
+            message: "Prietenia nu a putut fi stearsa"
+        }
+    })
+}
+
+exports.getNrOfFriends = (req) => {
+    return Friendships.count({
+        where: {
+            [Op.or]: [
+                {
+                    firstUserId: {
+                        [Op.eq]: parseInt(req.params.userId)
+                    },
+                    approveDate: {
+                        [Op.not]: null
+                    },
+                },
+                {
+                    secondUserId: {
+                        [Op.eq]: parseInt(req.params.userId)
+                    },
+                    approveDate: {
+                        [Op.not]: null
+                    },
+                }
+            ]
+        }
+    }).then(count => {
+        return {
+            success: false,
+            data: count,
+            message: "Numarul de prieteni a fost retras cu succes"
+        }
+    }).catch(() => {
+        return {
+            success: false,
+            message: "Numarul de prieteni nu a putut fi retras cu succes!"
+        }
+    })
+}
+
+exports.getFriends = (req) => {
+    return Friendships.findAll({
+        where: {
+            [Op.or]: [
+                {
+                    firstUserId: {
+                        [Op.eq]: parseInt(req.params.userId)
+                    },
+                    approveDate: {
+                        [Op.not]: null
+                    },
+                },
+                {
+                    secondUserId: {
+                        [Op.eq]: parseInt(req.params.userId)
+                    },
+                    approveDate: {
+                        [Op.not]: null
+                    },
+                }
+            ]
+        },
+        attributes: ["firstUserId", "secondUserId"],
+        raw: true
+    }).then(friendships => {
+        let usersIds = []
+        if (!_.isEmpty(friendships)) {
+            _.forEach(friendships, (friend) => {
+                if (friend.firstUserId != req.params.userId) {
+                    usersIds.push(friend.firstUserId)
+                } else if (friend.secondUserId != req.params.userId) {
+                    usersIds.push(friend.secondUserId)
+                }
+            })
+
+            return User.findAll({
+                where: {
+                    id: usersIds
+                },
+                attributes: ['id', 'firstName', 'lastName'],
+                raw: true
+            }).then((users) => {
+                if (!_.isEmpty(users)) {
+                    return {
+                        success: true,
+                        data: users,
+                        message: "Prietenii au fost gasiti cu succes"
+                    }
+                }
+
+                return {
+                    success: false,
+                    message: "A aparut o problema la gasirea prietenilor"
+                }
+            })
+        }
+
+        return {
+            success: true,
+            data: [],
+            message: "Nu exista prieteni pentru utilizator selectat"
+        }
+    }).catch(() => {
+        return {
+            success: false,
+            message: "Lista de prieteni nu a putut fi retrasa cu succes!"
+        }
+    })
+}
+
+exports.addFriend = (req) => {
+    if (req.body.isDelete === true) {
+        return Friendships.destroy({
+            where: {
+                [Op.or]: [
+                    {
+                        firstUserId: {
+                            [Op.eq]: parseInt(req.body.addFriendUserId)
+                        },
+                        secondUserId: {
+                            [Op.eq]: parseInt(req.body.authUserId)
+                        }
+                    },
+                    {
+                        firstUserId: {
+                            [Op.eq]: parseInt(req.body.authUserId)
+                        },
+                        secondUserId: {
+                            [Op.eq]: parseInt(req.body.addFriendUserId)
+                        }
+                    }
+                ]
+            }
+        }).then(() => {
+            return {
+                success: true,
+                message: "Prietenia a fost anulata cu succes"
+            }
+        })
+    } else {
+        let addFriend = Friendships.build({
+            firstUserId: parseInt(req.body.authUserId),
+            secondUserId: parseInt(req.body.addFriendUserId),
+            requestDate: new Date().toISOString(),
+            approveDate: null,
+            deniedDate: null
+        })
+
+        return addFriend.save().then((result) => {
+            console.log(result)
+            if (!_.isNil(result)) {
+                return {
+                    success: true,
+                    message: "Utilizatorul a fost adaugat la prieteni cu succes!"
+                }
+            } else {
+                return {
+                    success: false,
+                    message: "A aparut o eroare la trimiterea cererii de prietenie."
+                }
+            }
+        }).catch((sth) => {
+            return {
+                success: false,
+                message: "A aparut o eroare la trimiterea cererii de prietenie."
+            }
+        })
+    }
 }
 
 exports.signup = (req) => {
