@@ -48,6 +48,14 @@ const router = new Router({
             }
         },
         {
+            path: "/addEvent",
+            name: "addEvent",
+            component: () => import("./components/views/AddEvent"),
+            meta: {
+                middleware: authRequired
+            }
+        },
+        {
             path: "/profile/:id",
             name: "profile",
             component: () => import("./components/views/Profile"),

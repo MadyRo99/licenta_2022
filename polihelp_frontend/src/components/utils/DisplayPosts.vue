@@ -1,8 +1,6 @@
 <template>
   <div class="DisplayPosts">
-
-    <div class="container" id="app">
-
+    <div id="app">
       <div class="list-group-wrapper">
         <transition name="fade">
           <div class="loading" v-show="loading">
@@ -10,10 +8,9 @@
           </div>
         </transition>
         <ul class="list-group" id="infinite-list">
-          <Post v-for="post in posts" :key="post.id" :postData="{...post, postLikes: post.userLikes.length}" :postUserData="{lastName: post.lastName, firstName: post.firstName, displayRole: post.roleId, facultyName: post.facultyId, year: post.year}" :userLikes="post.userLikes" @post-deleted="removePostFromList"></Post>
+          <Post v-for="post in posts" :key="post.id" :postData="{...post, postLikes: post.userLikes.length}" :postUserData="{lastName: post.lastName, firstName: post.firstName, displayRoleType: post.roleName, facultyName: post.facultyName, year: post.year}" :userLikes="post.userLikes" @post-deleted="removePostFromList"></Post>
         </ul>
       </div>
-
     </div>
   </div>
 </template>
@@ -59,7 +56,6 @@ export default {
     loadMore: function () {
       this.loading = true;
       PostsService.getNewsFeedPosts({offset: this.offset}).then(response => {
-        console.log(response)
         this.offset += response.length
         this.loading = false
         let parsedPosts = JSON.parse(JSON.stringify(response))

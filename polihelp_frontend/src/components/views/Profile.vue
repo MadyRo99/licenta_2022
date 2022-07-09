@@ -42,26 +42,31 @@
             <button type="button" class="btn btn-primary" v-b-modal.modal-1 @click="loadFriends">Prieteni <span class="badge badge-light">{{ nrOfFriends }}</span></button>
           </div>
           <div class="col-6">
-            <button type="button" class="btn btn-primary">Grupuri <span class="badge badge-light">{{ nrOfGroups }}</span></button>
+            <button type="button" class="btn btn-primary">Evenimente <span class="badge badge-light">{{ nrOfGroups }}</span></button>
           </div>
         </div>
       </div>
       <div class="profile-user-posts">
-        <Post v-for="post in posts" :key="post.id" :postData="post" :postUserData="postsUserData" :userLikes="userLikes" @post-deleted="removePostFromList"></Post>
+        <div v-for="n in (posts.length + events.length)" :key="n">
+          <Post v-if="posts[n - 1] != null" :key="posts[n - 1].id" :postData="posts[n - 1]" :postUserData="postsUserData" :userLikes="userLikes" @post-deleted="removePostFromList"></Post>
+          <Event v-if="events[n - 1] != null" :key="events[n - 1].id" :eventData="events[n - 1]" :eventUserData="postsUserData" @event-deleted="removeEventFromList"></Event>
+        </div>
       </div>
     </div>
     <b-modal id="modal-1" title="Prieteni" class="profile-friends-modal" size="lg" :show-close="false" data-backdrop="static" data-keyboard="false" centered scrollable ok-only ok-variant="secondary" ok-title="Inchide">
       <div class="profile-friend-modal-container" v-if="nrOfFriends != 0">
         <div class="profile-friend" v-for="friend in friendsData" :key="friend.id">
-          <div class="img-container">
-            <img src="@/assets/images/upb_register.jpg" alt="default-user.png">
-          </div>
+          <router-link :to="{path: '/profile/' + friend.id}">
+            <div class="img-container">
+              <img src="@/assets/images/upb_register.jpg" alt="default-user.png">
+            </div>
+          </router-link>
           <div class="friend-details">
             <div>
               <router-link :to="{path: '/profile/' + friend.id}">
                 <h1>{{ friend.firstName }} {{ friend.lastName }}</h1>
               </router-link>
-              <button type="button" class="btn btn-danger btn-sm" style="width: 75px; height: 30px;" @click="removeFriend(friend.id)">Sterge</button>
+              <button v-if="friend.id != $store.state.auth.user.id" type="button" class="btn btn-danger btn-sm" style="width: 75px; height: 30px;" @click="removeFriend(friend.id)">Sterge</button>
               <div class="clearfix"></div>
             </div>
           </div>
@@ -154,14 +159,16 @@
 
 <script>
 import Post from "../Post";
+import Event from "../Event";
 import UserService from "../../services/authentication/UserService";
 import UtilsService from "../../services/UtilsService";
 import PostsService from "../../services/PostsService";
+import EventsService from "../../services/EventsService";
 import TagInput from "../utils/TagInput";
 
 export default {
   name: 'Profile',
-  components: { Post, TagInput },
+  components: { Post, Event, TagInput },
   data() {
     return {
       user: {
@@ -183,7 +190,8 @@ export default {
       faculties: [],
       interests: [],
       roles: [],
-      posts: [],
+      posts: Array,
+      events: Array,
       postsUserData: {},
       userLikes: []
     }
@@ -226,6 +234,7 @@ export default {
       this.populateInterests()
       this.populateRoles()
       this.loadUserPosts()
+      this.loadUserEvents()
     },
     populateUserFromDatabase: function () {
       UtilsService.getUserProfileDetails({userId: this.$route.params.id, authUser: this.$store.state.auth.user.id}).then(user => {
@@ -308,6 +317,13 @@ export default {
         this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea paginii")
       })
     },
+    loadUserEvents: function () {
+      EventsService.getUserEvents({authorId: this.$route.params.id, userId: this.$store.state.auth.user.id}).then(events => {
+        this.events = JSON.parse(JSON.stringify(events.eventDetails))
+      }).catch(() => {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea paginii")
+      })
+    },
     loadFriends: function () {
       UserService.getFriends({userId: this.$route.params.id}).then(response => {
         if (response.data.success) {
@@ -377,8 +393,13 @@ export default {
       this.interests = payload.interests.map((interest) => ({ interest: interest }))
     },
     removePostFromList(postData) {
-      this.posts = this.posts.filter(function( post ) {
+      this.posts = this.posts.filter(function(post) {
         return post.id !== postData.postId;
+      });
+    },
+    removeEventFromList(eventData) {
+      this.events = this.events.filter(function(event) {
+        return event.id !== eventData.eventId;
       });
     },
     validateUpdateUserInput() {

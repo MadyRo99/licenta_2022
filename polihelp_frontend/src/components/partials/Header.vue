@@ -1,6 +1,6 @@
 <template>
   <div id="header">
-    <p><router-link to="/">Home</router-link> | <router-link to="/login">Login</router-link> | <router-link to="/register">Register</router-link> | <router-link :to="{ path: '/profile/' + profileRouteUserId }">Profile</router-link> | <router-link to="/logout">Logout</router-link></p>
+    <p><router-link to="/">Home</router-link> <span v-if="!$store.state.auth.user">|</span> <router-link v-if="!$store.state.auth.user" to="/login">Login</router-link> <span v-if="!$store.state.auth.user">|</span> <router-link v-if="!$store.state.auth.user" to="/register">Register</router-link> <span v-if="$store.state.auth.user">|</span> <router-link v-if="$store.state.auth.user" :to="{ path: '/profile/' + profileRouteUserId }">Profile</router-link> <span v-if="$store.state.auth.user">|</span> <router-link v-if="$store.state.auth.user" :to="{ path: '/addEvent' }">Adauga Eveniment</router-link> <span v-if="$store.state.auth.user">|</span> <router-link v-if="$store.state.auth.user" to="/logout">Logout</router-link></p>
   </div>
 </template>
 

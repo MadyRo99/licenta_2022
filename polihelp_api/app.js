@@ -7,7 +7,8 @@ const cors = require("cors")
 
 const indexRouter = require('./routes/index')
 const usersRouter = require('./routes/users')
-const postsRouter = require ('./routes/posts')
+const postsRouter = require('./routes/posts')
+const eventsRouter = require('./routes/events')
 const bodyParser = require("body-parser")
 
 const app = express();
@@ -49,6 +50,7 @@ db.sequelize.sync();
 app.use('/api/', indexRouter);
 app.use('/api/posts', postsRouter);
 app.use('/api/users', usersRouter);
+app.use('/api/events', eventsRouter);
 
 // set port, listen for requests
 const PORT = 8080;

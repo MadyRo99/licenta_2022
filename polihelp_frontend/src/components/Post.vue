@@ -1,48 +1,50 @@
 <template>
   <div class="Post">
-    <div>
-      <div class="post-user">
-        <div class="post-user-left">
+    <div class="post-user">
+      <div class="post-user-left">
+        <router-link :to="{path: '/profile/' + postData.authorId}">
           <div class="img-container-user">
             <img src="@/assets/images/default-user.png" alt="default-user.png">
           </div>
-          <div class="post-user-info">
+        </router-link>
+        <div class="post-user-info">
+          <router-link :to="{path: '/profile/' + postData.authorId}">
             <h1>{{ postUserData.lastName }} {{ postUserData.firstName }}</h1>
-            <h2>{{ postCreatedAt }}</h2>
-          </div>
-          <div class="clearfix"></div>
-        </div>
-        <div class="post-social-info">
-          <div class="post-likes">
-            <h2>{{ this.postLikes }}</h2>
-            <div class="img-container-like" @click="this.likePost">
-              <img v-if="postLiked" src="@/assets/images/like_filled.png" alt="like.png">
-              <img v-else src="@/assets/images/like.png" alt="like.png">
-            </div>
-          </div>
-          <div class="post-comments">
-            <h2>2</h2>
-            <div class="img-container-like">
-              <img src="@/assets/images/comment.png" alt="comment.png">
-            </div>
-          </div>
-          <div class="clearfix"></div>
+          </router-link>
+          <h2>{{ postCreatedAt }}</h2>
         </div>
         <div class="clearfix"></div>
-        <div class="post-faculty">
-          <h3>
-            {{ postUserData.displayRoleType }} la {{ postUserData.facultyName }}
-            <br>
-            {{ postUserData.year }}
-          </h3>
-        </div>
-        <hr color="#FFFFFF">
-        <p>
-          {{ postData.content }}
-        </p>
-        <button v-if="postData.authorId === this.$store.state.auth.user.id" type="button" class="btn btn-danger"
-        @click="this.deletePost">Sterge Postarea</button>
       </div>
+      <div class="post-social-info">
+        <div class="post-likes">
+          <h2>{{ this.postLikes }}</h2>
+          <div class="img-container-like" @click="this.likePost">
+            <img v-if="postLiked" src="@/assets/images/like_filled.png" alt="like.png">
+            <img v-else src="@/assets/images/like.png" alt="like.png">
+          </div>
+        </div>
+        <div class="post-comments">
+          <h2>2</h2>
+          <div class="img-container-like">
+            <img src="@/assets/images/comment.png" alt="comment.png">
+          </div>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+      <div class="clearfix"></div>
+      <div class="post-faculty">
+        <h3>
+          {{ postUserData.displayRoleType }} la {{ postUserData.facultyName }}
+          <br>
+          {{ postUserData.year }}
+        </h3>
+      </div>
+      <hr color="#FFFFFF">
+      <p>
+        {{ postData.content }}
+      </p>
+      <button v-if="postData.authorId === this.$store.state.auth.user.id" type="button" class="btn btn-danger"
+      @click="this.deletePost">Sterge Postarea</button>
     </div>
   </div>
 </template>
@@ -113,7 +115,9 @@ export default {
           break
       }
 
-      this.postCreatedAt = date.getDate() + " " + month + " " + date.getFullYear() + " la " + date.getHours() + ":" + date.getMinutes()
+      let hours = (date.getHours().toString().length == 1) ? "0" + date.getHours() : date.getHours()
+      let minutes = (date.getMinutes().toString().length == 1) ? "0" + date.getMinutes() : date.getMinutes()
+      this.postCreatedAt = date.getDate() + " " + month + " " + date.getFullYear() + " la " + hours + ":" + minutes
     },
     likePost: function () {
       this.blockLikeButton = true
@@ -164,7 +168,7 @@ export default {
 <style scoped>
 .post-user {
   max-width: 1000px;
-  margin: 0px auto 35px;
+  margin: 0 auto 35px;
   padding: 25px 25px 10px;
   background: #44449B;
   border-radius: 8px;
@@ -232,6 +236,13 @@ export default {
 
 .post-user .post-user-info h1 {
   font-size: 18px;
+  color: #FFFFFF;
+  text-decoration-color: #FFFFFF;
+}
+
+.post-user .post-user-info h1:hover {
+  text-decoration: underline;
+  text-decoration-color: #FFFFFF;
 }
 
 .post-user .post-user-info h2 {
