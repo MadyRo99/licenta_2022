@@ -4,13 +4,13 @@
       <form name="form" @submit.prevent="handleSubmit(onSubmit)" method="POST" class="postContentForm">
         <ValidationProvider name="postContent" :rules="{ required: true, min: 2, max: 500 }">
           <div slot-scope="{ errors }" class="input-group postContentText">
-            <textarea v-model="postContent" class="input--style-3" id="postContent" name="postContent" :placeholder="postPlaceholderContent" :disabled="successful">
+            <textarea v-model="postContent" class="input--style-3" id="postContent" name="postContent" :placeholder="postPlaceholderContent">
             </textarea>
             <p class="errorMessage">{{ errors[0] }}</p>
           </div>
         </ValidationProvider>
 
-        <button type="submit" :disabled="successful">Posteaza</button>
+        <button type="submit">Posteaza</button>
       </form>
     </ValidationObserver>
   </div>
@@ -42,8 +42,16 @@ export default {
       PostsService.createPost(this.postContent).then(data => {
           this.successful = !!data.success
 
-          let toastVariant = this.successful ? 'success' : 'danger'
-          let toastTitle = this.successful ? "Succes" : "Eroare"
+          let toastVariant
+        let toastTitle
+          if (this.successful) {
+            toastVariant = "success"
+            toastTitle = "Succes"
+            this.postContent = ""
+          } else {
+            toastVariant = "danger"
+            toastTitle = "Eroare"
+          }
           this.toast('b-toaster-bottom-right', toastVariant, toastTitle, data.message);
       }).catch(() => {
         this.successful = false

@@ -8,7 +8,10 @@
           </div>
         </transition>
         <ul class="list-group" id="infinite-list">
-          <Post v-for="post in posts" :key="post.id" :postData="{...post, postLikes: post.userLikes.length}" :postUserData="{lastName: post.lastName, firstName: post.firstName, displayRoleType: post.roleName, facultyName: post.facultyName, year: post.year}" :userLikes="post.userLikes" @post-deleted="removePostFromList"></Post>
+          <div v-for="n in (posts.length + events.length)" :key="n - 1">
+            <Post v-if="posts[n - 1] != null" :postData="{...posts[n - 1], postLikes: posts[n - 1].userLikes.length}" :postUserData="{lastName: posts[n - 1].lastName, firstName: posts[n - 1].firstName, displayRoleType: posts[n - 1].roleName, facultyName: posts[n - 1].facultyName, year: posts[n - 1].year}" :userLikes="posts[n - 1].userLikes" @post-deleted="removePostFromList"></Post>
+            <Event v-if="events[n - 1] != null" :eventData="{...events[n - 1]}" :eventUserData="{lastName: events[n - 1].lastName, firstName: events[n - 1].firstName, displayRoleType: events[n - 1].roleName, facultyName: events[n - 1].facultyName, year: events[n - 1].year}" @event-deleted="removeEventFromList"></Event>
+          </div>
         </ul>
       </div>
     </div>
@@ -17,29 +20,37 @@
 
 <script>
 import Post from "../Post";
+import Event from "../Event";
 import PostsService from "../../services/PostsService";
+import EventsService from "../../services/EventsService";
+import UtilsService from "../../services/UtilsService";
 
 export default {
   name: 'DisplayPosts',
-  components: { Post },
+  components: { Post, Event },
   data() {
     return {
       loading: false,
-      offset: 0,
-      posts: []
+      postsOffset: 0,
+      eventsOffset: 0,
+      posts: [],
+      events: [],
     }
   },
   watch: {
     '$route.params': {
       handler() {
         this.posts = []
-        this.initializeComponent()
+        this.events = []
       },
       immediate: true,
     }
   },
   mounted () {
+    UtilsService.getPostsAndEventsCount()
+
     const listElm = document.querySelector('#infinite-list');
+
     // eslint-disable-next-line no-unused-vars
     listElm.addEventListener('scroll', e => {
       if(listElm.scrollTop + listElm.clientHeight >= listElm.scrollHeight) {
@@ -50,26 +61,39 @@ export default {
     this.loadMore();
   },
   methods: {
-    initializeComponent: function () {
-      //this.loadMore()
-    },
     loadMore: function () {
       this.loading = true;
-      PostsService.getNewsFeedPosts({offset: this.offset}).then(response => {
-        this.offset += response.length
+
+      PostsService.getNewsFeedPosts({offset: this.postsOffset}).then(response => {
+        this.postsOffset += response.length
         this.loading = false
         let parsedPosts = JSON.parse(JSON.stringify(response))
         parsedPosts.forEach((post) => {
           this.posts.push(post)
         })
-        //this.posts = this.posts.push(JSON.parse(JSON.stringify(response)))
       }).catch(() => {
         this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea postarilor")
+      })
+
+      EventsService.getNewsFeedEvents({offset: this.eventsOffset}).then(response => {
+        this.eventsOffset += response.length
+        this.loading = false
+        let parsedEvents = JSON.parse(JSON.stringify(response))
+        parsedEvents.forEach((theEvent) => {
+          this.events.push(theEvent)
+        })
+      }).catch(() => {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea evenimentelor")
       })
     },
     removePostFromList(postData) {
       this.posts = this.posts.filter(function( post ) {
         return post.id !== postData.postId;
+      });
+    },
+    removeEventFromList(eventData) {
+      this.events = this.events.filter(function( event ) {
+        return event.id !== eventData.eventId;
       });
     },
     toast: function (toaster, variant, title, message) {
@@ -87,11 +111,6 @@ export default {
 </script>
 
 <style scoped>
-
-.container {
-  border: 1px solid red;
-  width: 100%;
-}
 
 body {
   background-color: #5c4084;

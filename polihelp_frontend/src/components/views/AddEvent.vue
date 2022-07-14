@@ -72,11 +72,15 @@ export default {
   },
   methods: {
     onSubmit: function () {
+      let currentDate = new Date()
       let startDate = new Date(this.event.startDate)
       let endDate = new Date(this.event.endDate)
       if (startDate > endDate) {
         this.successful = false
         this.toast('b-toaster-bottom-right', "danger", "Eroare", "Data de inceput nu poate fi dupa data de sfarsit.")
+      } else if (startDate < currentDate) {
+        this.successful = false
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "Data de inceput nu poate fi inainte de data curenta.")
       } else {
         EventsService.createEvent(this.event).then(data => {
           this.successful = !!data.success

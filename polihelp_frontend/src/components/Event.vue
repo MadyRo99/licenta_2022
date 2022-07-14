@@ -18,8 +18,9 @@
       <div class="event-social-info">
         <div class="event-participants">
           <h2>{{ this.eventParticipants }}</h2>
-          <div class="img-container-participants">
-            <img src="@/assets/images/participants.png" alt="participants.png">
+          <div class="img-container-participants" @click="this.joinEvent">
+            <img v-if="joinedEvent" src="@/assets/images/participants_filled.png" alt="participants_filled.png">
+            <img v-else src="@/assets/images/participants.png" alt="participants.png">
           </div>
         </div>
       </div>
@@ -50,15 +51,20 @@ export default {
   props: {
     eventData: Object,
     eventUserData: Object,
-    eventParticipants: Array
+    userEvents: Array
   },
   data() {
     return {
       eventCreatedAt: "",
+      eventParticipants: 0,
+      joinedEvent: false,
+      blockJoinButton: false
     }
   },
   created() {
+    this.eventParticipants = this.eventData.eventParticipants
     this.formatDate()
+    this.checkIfJoined()
   },
   methods: {
     formatDate: function () {
@@ -106,6 +112,28 @@ export default {
       let hours = (date.getHours().toString().length == 1) ? "0" + date.getHours() : date.getHours()
       let minutes = (date.getMinutes().toString().length == 1) ? "0" + date.getMinutes() : date.getMinutes()
       this.eventCreatedAt = date.getDate() + " " + month + " " + date.getFullYear() + " la " + hours + ":" + minutes
+    },
+    joinEvent: function () {
+      this.blockJoinButton = true
+      EventsService.joinEvent({userId: this.$store.state.auth.user.id, eventId: this.eventData.id}).then(response => {
+        if (response.success === true) {
+          if (response.joined === true) {
+            this.joinedEvent = true
+            this.eventParticipants = parseInt(this.eventParticipants) + 1
+          } else {
+            this.joinedEvent = false
+            this.eventParticipants = parseInt(this.eventParticipants) - 1
+          }
+          this.blockJoinButton = false
+        }
+      }).catch(() => {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare in cursul participarii la eveniment.")
+      })
+    },
+    checkIfJoined: function () {
+      if (this.userEvents.some(e => ((e.eventId == this.eventData.id) && (e.userId == this.$store.state.auth.user.id)))) {
+        this.joinedEvent = true
+      }
     },
     deleteEvent: function () {
       EventsService.deleteEvent(this.eventData.id).then(response => {

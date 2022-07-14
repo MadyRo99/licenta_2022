@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
+const { authJwt } = require("../middleware")
 const newsFeedController = require("../controllers/NewsFeedController")
 const utilsController = require("../controllers/UtilsController")
 
@@ -28,6 +29,15 @@ router.get('/getAllFaculties', function(req, res, next) {
 router.get('/getInterestsByUser/:userId', function(req, res, next) {
   utilsController.getInterestsByUser(req).then(interests => {
     res.json(interests)
+  }).catch(err => {
+    return res.status(400).json( {err} )
+  })
+});
+
+router.post('/getPostsAndEventsCount', authJwt.verifyToken, function(req, res, next) {
+  console.log("am ajuns")
+  utilsController.getPostsAndEventsCount().then(count => {
+    res.json(count)
   }).catch(err => {
     return res.status(400).json( {err} )
   })

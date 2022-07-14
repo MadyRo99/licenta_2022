@@ -24,8 +24,26 @@ class EventsService {
         })
     }
 
+    joinEvent(data) {
+        return http.post("events/joinEvent/" + data.eventId, {
+            userId: data.userId,
+            token: localStorage.getItem("jwt")
+        }).then(response => {
+            return response.data
+        })
+    }
+
     deleteEvent(eventId) {
         return http.post("events/deleteEvent/" + eventId, {
+            token: localStorage.getItem("jwt")
+        }).then(response => {
+            return response.data
+        })
+    }
+
+    getNewsFeedEvents(data) {
+        return http.post("events/getNewsFeedEvents/", {
+            offset: data.offset,
             token: localStorage.getItem("jwt")
         }).then(response => {
             return response.data

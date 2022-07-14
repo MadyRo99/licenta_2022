@@ -16,6 +16,18 @@ router.post('/getUserEvents/:authorId', authJwt.verifyToken, function(req, res, 
     })
 })
 
+router.post('/joinEvent/:eventId', authJwt.verifyToken, function(req, res, next) {
+    eventsController.joinEvent(req).then((response) => {
+        res.json(response)
+    })
+})
+
+router.post('/getNewsFeedEvents', authJwt.verifyToken, function(req, res, next) {
+    eventsController.getNewsFeedEvents(req).then((response) => {
+        res.json(response)
+    })
+})
+
 router.post('/deleteEvent/:eventId', authJwt.verifyToken, function(req, res, next) {
     eventsController.deleteEvent(req).then((response) => {
         res.json(response)

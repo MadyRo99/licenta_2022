@@ -47,9 +47,9 @@
         </div>
       </div>
       <div class="profile-user-posts">
-        <div v-for="n in (posts.length + events.length)" :key="n">
+        <div v-for="n in (posts.length + events.length)" :key="n - 1">
           <Post v-if="posts[n - 1] != null" :key="posts[n - 1].id" :postData="posts[n - 1]" :postUserData="postsUserData" :userLikes="userLikes" @post-deleted="removePostFromList"></Post>
-          <Event v-if="events[n - 1] != null" :key="events[n - 1].id" :eventData="events[n - 1]" :eventUserData="postsUserData" @event-deleted="removeEventFromList"></Event>
+          <Event v-if="events[n - 1] != null" :key="events[n - 1].id" :eventData="events[n - 1]" :eventUserData="postsUserData" :userEvents="userEvents" @event-deleted="removeEventFromList"></Event>
         </div>
       </div>
     </div>
@@ -193,7 +193,8 @@ export default {
       posts: Array,
       events: Array,
       postsUserData: {},
-      userLikes: []
+      userLikes: [],
+      userEvents: []
     }
   },
   computed: {
@@ -320,6 +321,7 @@ export default {
     loadUserEvents: function () {
       EventsService.getUserEvents({authorId: this.$route.params.id, userId: this.$store.state.auth.user.id}).then(events => {
         this.events = JSON.parse(JSON.stringify(events.eventDetails))
+        this.userEvents = JSON.parse(JSON.stringify(events.userEvents))
       }).catch(() => {
         this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea paginii")
       })

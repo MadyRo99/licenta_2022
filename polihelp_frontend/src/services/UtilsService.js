@@ -8,6 +8,14 @@ class UtilsService {
         })
     }
 
+    getPostsAndEventsCount() {
+        return http.post("getPostsAndEventsCount", {
+            token: localStorage.getItem("jwt")
+        }).then(response => {
+            return response.data
+        })
+    }
+
     getFaculties() {
         return http.get("getAllFaculties")
     }
