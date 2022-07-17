@@ -10,6 +10,7 @@
   "dependencies": {
     "@saeris/vue-spinners": "^1.0.8",
     "axios": "^0.23.0",
+    "bad-words": "^3.0.4",
     "bootstrap-vue": "^2.21.2",
     "core-js": "^3.6.5",
     "daterangepicker": "^3.1.0",

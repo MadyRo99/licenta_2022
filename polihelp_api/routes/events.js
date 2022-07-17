@@ -22,6 +22,24 @@ router.post('/joinEvent/:eventId', authJwt.verifyToken, function(req, res, next)
     })
 })
 
+router.post('/getNrOfEvents/:userId', authJwt.verifyToken, function(req, res, next) {
+    eventsController.getNrOfEvents(req).then((response) => {
+        res.json(response)
+    })
+})
+
+router.post('/getJoinedEvents/:userId', authJwt.verifyToken, function(req, res, next) {
+    eventsController.getJoinedEvents(req).then((response) => {
+        res.json(response)
+    })
+})
+
+router.post('/removeJoinedEvent', authJwt.verifyToken, function(req, res, next) {
+    eventsController.removeJoinedEvent(req).then((response) => {
+        res.json(response)
+    })
+})
+
 router.post('/getNewsFeedEvents', authJwt.verifyToken, function(req, res, next) {
     eventsController.getNewsFeedEvents(req).then((response) => {
         res.json(response)

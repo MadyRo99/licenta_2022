@@ -139,6 +139,55 @@ exports.joinEvent = (req) => {
     })
 }
 
+exports.getNrOfEvents = (req) => {
+    return EventParticipants.count({
+        where: {
+            userId: req.params.userId
+        }
+    }).then(count => {
+        return {
+            success: true,
+            data: count,
+            message: "Numarul de evenimente a fost retras cu succes"
+        }
+    }).catch(() => {
+        return {
+            success: false,
+            message: "Numarul de evenimente nu a putut fi retras cu succes!"
+        }
+    })
+}
+
+exports.getJoinedEvents = async (req) => {
+    let sql = "SELECT \"events\".\"id\", \"events\".\"authorId\", \"events\".\"name\", \"events\".\"location\", \"events\".\"startDate\", \"events\".\"endDate\" FROM \"events\" JOIN \"event_participants\" ON \"event_participants\".\"eventId\" = \"events\".\"id\" WHERE \"event_participants\".\"userId\" = " + req.params.userId + ";"
+    let events = await db.sequelize.query(sql, {type: QueryTypes.SELECT})
+
+    return {
+        success: true,
+        data: events,
+        message: "Evenimentele au fost retrase cu succes."
+    }
+}
+
+exports.removeJoinedEvent = (req) => {
+    return EventParticipants.destroy({
+        where: {
+            userId: req.body.userId,
+            eventId: req.body.eventId
+        }
+    }).then(() => {
+        return {
+            success: true,
+            message: "Participarea la eveniment a fost stearsa cu succes."
+        }
+    }).catch(() => {
+        return {
+            success: false,
+            message: "Participarea la eveniment nu a putut fi stearsa."
+        }
+    })
+}
+
 exports.deleteEvent = (req) => {
     return EventParticipants.destroy({
         where: {

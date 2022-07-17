@@ -54,6 +54,9 @@
 
 <script>
 import EventsService from "../../services/EventsService";
+let Filter = require('bad-words')
+let filter = new Filter();
+filter.addWords("cuvantObscen")
 
 export default {
   name: 'AddEvent',
@@ -82,7 +85,15 @@ export default {
         this.successful = false
         this.toast('b-toaster-bottom-right', "danger", "Eroare", "Data de inceput nu poate fi inainte de data curenta.")
       } else {
-        EventsService.createEvent(this.event).then(data => {
+        let createEventData = {
+          authorId: this.event.authorId,
+          name: filter.clean(this.event.name),
+          location: filter.clean(this.event.location),
+          content: filter.clean(this.event.location),
+          startDate: this.event.startDate,
+          endDate: this.event.endDate
+        }
+        EventsService.createEvent(createEventData).then(data => {
           this.successful = !!data.success
 
           let toastVariant = this.successful ? 'success' : 'danger'
@@ -107,3 +118,9 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+#addEvent {
+  margin-top: 50px;
+}
+</style>

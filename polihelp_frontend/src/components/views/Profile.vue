@@ -42,7 +42,7 @@
             <button type="button" class="btn btn-primary" v-b-modal.modal-1 @click="loadFriends">Prieteni <span class="badge badge-light">{{ nrOfFriends }}</span></button>
           </div>
           <div class="col-6">
-            <button type="button" class="btn btn-primary">Evenimente <span class="badge badge-light">{{ nrOfGroups }}</span></button>
+            <button type="button" class="btn btn-primary" v-b-modal.modal-2 @click="loadJoinedEvents">Evenimente <span class="badge badge-light">{{ nrOfJoinedEvents }}</span></button>
           </div>
         </div>
       </div>
@@ -75,6 +75,18 @@
       </div>
       <div v-else>
         <p>Nu exista prieteni de afisat.</p>
+      </div>
+    </b-modal>
+    <b-modal id="modal-2" title="Evenimente" class="profile-friends-modal" size="lg" :show-close="false" data-backdrop="static" data-keyboard="false" centered scrollable ok-only ok-variant="secondary" ok-title="Inchide">
+      <div class="profile-friend-modal-container" v-if="nrOfJoinedEvents != 0">
+        <div v-for="joinedEvent in joinedEvents" :key="joinedEvent.name">
+          <h2>{{ joinedEvent.name }} | {{ joinedEvent.location }}</h2>
+          <p>Data Inceput: {{ formatDate(joinedEvent.startDate) }} | Data Sfarsrit: {{ formatDate(joinedEvent.endDate) }}</p>
+          <button v-if="joinedEvent.authorId == $store.state.auth.user.id" type="button" class="btn btn-danger btn-sm" style="width: 75px; height: 30px;" @click="removeJoinedEvent(joinedEvent.id)">Sterge</button>
+        </div>
+      </div>
+      <div v-else>
+        <p>Nu exista evenimente de afisat.</p>
       </div>
     </b-modal>
     <b-modal
@@ -185,8 +197,9 @@ export default {
       isFriend: false,
       isPending: false,
       nrOfFriends: 0,
-      nrOfGroups: 0,
+      nrOfJoinedEvents: 0,
       friendsData: Array,
+      joinedEvents: Array,
       faculties: [],
       interests: [],
       roles: [],
@@ -225,12 +238,14 @@ export default {
   methods: {
     initializeComponent: function () {
       this.$bvModal.hide("modal-1")
+      this.$bvModal.hide("modal-2")
       if (this.$route.params.id == this.$store.state.auth.user.id) {
         this.populateUserFromSession()
       } else {
         this.populateUserFromDatabase()
       }
       this.populateNrOfFriends()
+      this.populateNrOfEvents()
       this.populateFaculties()
       this.populateInterests()
       this.populateRoles()
@@ -337,6 +352,24 @@ export default {
         this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea listei de prieteni")
       })
     },
+    populateNrOfEvents: function () {
+      EventsService.getNrOfEvents({ userId: this.$route.params.id}).then(nrOfEvents => {
+        this.nrOfJoinedEvents = nrOfEvents.data
+      }).catch(() => {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea paginii.")
+      })
+    },
+    loadJoinedEvents: function () {
+      EventsService.getJoinedEvents({userId: this.$route.params.id}).then(response => {
+        if (response.data.success) {
+          this.joinedEvents = response.data.data
+        } else {
+          this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea listei de evenimente")
+        }
+      }).catch(() => {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea listei de evenimente")
+      })
+    },
     addFriend(isDelete) {
       UserService.addFriend({addFriendUserId: this.user.id, authUserId: this.$store.state.auth.user.id, isDelete: isDelete}).then(response => {
         if (response.success) {
@@ -366,6 +399,19 @@ export default {
         }
       }).catch(() => {
         this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la stergerea prieteniei")
+      })
+    },
+    removeJoinedEvent(eventId) {
+      EventsService.removeJoinedEvent({userId: this.$store.state.auth.user.id, eventId: eventId}).then(response => {
+        if (response.success) {
+          let deleteIndex = this.joinedEvents.findIndex((theEvent) => theEvent.id == eventId)
+          this.joinedEvents.splice(deleteIndex, 1);
+          this.nrOfJoinedEvents--
+        } else {
+          this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la eliminarea participarii la eveniment.")
+        }
+      }).catch(() => {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la eliminarea participarii la eveniment.")
       })
     },
     editProfileSubmit(event) {
@@ -446,6 +492,50 @@ export default {
       }
 
       return true
+    },
+    formatDate: function (rawDate) {
+      let date = new Date(rawDate)
+      let month
+      switch (date.getMonth()) {
+        case 0:
+          month = 'Ianuarie'
+          break
+        case 1:
+          month = 'Februarie'
+          break
+        case 2:
+          month = 'Martie'
+          break
+        case 3:
+          month = 'Aprilie'
+          break
+        case 4:
+          month = 'Mai'
+          break
+        case 5:
+          month = 'Iunie'
+          break
+        case 6:
+          month = 'Iulie'
+          break
+        case 7:
+          month = 'August'
+          break
+        case 8:
+          month = 'Septembrie'
+          break
+        case 9:
+          month = 'Octombrie'
+          break
+        case 10:
+          month = 'Noiembrie'
+          break
+        case 11:
+          month = 'Decembrie'
+          break
+      }
+
+      return date.getDate() + " " + month + " " + date.getFullYear()
     },
     toast: function (toaster, variant, title, message) {
       this.$bvToast.toast(message, {

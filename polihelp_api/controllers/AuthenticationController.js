@@ -152,7 +152,7 @@ exports.getNrOfFriends = (req) => {
         }
     }).then(count => {
         return {
-            success: false,
+            success: true,
             data: count,
             message: "Numarul de prieteni a fost retras cu succes"
         }

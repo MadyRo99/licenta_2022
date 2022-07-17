@@ -19,6 +19,9 @@
 <script>
 import { setInteractionMode } from 'vee-validate'
 import PostsService from "../../services/PostsService";
+let Filter = require('bad-words')
+let filter = new Filter();
+filter.addWords("cuvantObscen")
 
 setInteractionMode('passive')
 
@@ -39,7 +42,7 @@ export default {
   },
   methods: {
     onSubmit: function () {
-      PostsService.createPost(this.postContent).then(data => {
+      PostsService.createPost(filter.clean(this.postContent)).then(data => {
           this.successful = !!data.success
 
           let toastVariant
@@ -72,4 +75,8 @@ export default {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.AddPost {
+  margin-top: 50px;
+}
+</style>
