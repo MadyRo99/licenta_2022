@@ -4,7 +4,8 @@
       <div class="event-user-left">
         <router-link :to="{path: '/profile/' + eventData.authorId}">
           <div class="img-container-user">
-            <img src="@/assets/images/default-user.png" alt="default-user.png">
+            <img v-if="eventUserData.profileImage" :src="eventUserData.profileImage" alt="default-user.png">
+            <img v-else src="https://imagini-profil.s3.eu-central-1.amazonaws.com/defaultUserImage.png" alt="default-user.png">
           </div>
         </router-link>
         <div class="event-user-info">
@@ -32,9 +33,13 @@
           {{ eventUserData.year }}
         </h3>
       </div>
-      <h1>{{ eventData.name }}</h1>
-      <hr color="#FFFFFF">
-      <p>
+      <h1 class="eventName">{{ eventData.name }} | {{ eventData.location}}</h1>
+      <h2 class="eventDetails">Data Inceput: <b>{{ formatDate(eventData.startDate) }}</b> | Data Sfarsit: <b>{{ formatDate(eventData.endDate) }}</b></h2>
+      <div class="event-image-container">
+        <img src="https://imagini-eveniment.s3.eu-central-1.amazonaws.com/2ZfsxY4qPmnTpxetOrgUP5vcq6c3TKM4.png" alt="default-event.png">
+      </div>
+      <br>
+      <p style="padding-bottom: 5px;">
         {{ eventData.content }}
       </p>
       <button v-if="eventData.authorId === this.$store.state.auth.user.id" type="button" class="btn btn-danger"
@@ -63,12 +68,12 @@ export default {
   },
   created() {
     this.eventParticipants = this.eventData.eventParticipants
-    this.formatDate()
+    this.eventCreatedAt = this.formatDate(this.eventData.createdAt, true)
     this.checkIfJoined()
   },
   methods: {
-    formatDate: function () {
-      let date = new Date(this.eventData.createdAt)
+    formatDate: function (dateToFormat, withTime) {
+      let date = new Date(dateToFormat)
       let month
       switch (date.getMonth()) {
         case 0:
@@ -111,7 +116,11 @@ export default {
 
       let hours = (date.getHours().toString().length == 1) ? "0" + date.getHours() : date.getHours()
       let minutes = (date.getMinutes().toString().length == 1) ? "0" + date.getMinutes() : date.getMinutes()
-      this.eventCreatedAt = date.getDate() + " " + month + " " + date.getFullYear() + " la " + hours + ":" + minutes
+      if (withTime) {
+        return date.getDate() + " " + month + " " + date.getFullYear() + " la " + hours + ":" + minutes
+      } else {
+        return date.getDate() + " " + month + " " + date.getFullYear()
+      }
     },
     joinEvent: function () {
       this.blockJoinButton = true
@@ -242,5 +251,25 @@ export default {
 
 .event-user p {
   font-size: 16px;
+}
+
+.eventName {
+  font-size: 24px;
+}
+
+.eventDetails {
+  font-size: 16px;
+}
+
+.event-image-container {
+  position: relative;
+  width: 950px;
+  height: 560px;
+}
+
+.event-image-container img {
+  position: absolute;
+  width: 950px;
+  height: 560px;
 }
 </style>

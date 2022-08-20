@@ -4,7 +4,8 @@
     <div class="profile-user-box">
       <div>
         <div class="img-container">
-          <img src="@/assets/images/upb_register.jpg" alt="default-user.png">
+          <img id="imgFileUpload" style="cursor: pointer" :src="user.profileImage" alt="default-user.png">
+          <input v-if="$route.params.id == $store.state.auth.user.id" type="file" @change="handleImage" accept="image/png, image/gif, image/jpeg" id="FileUpload1" style="display: none" />
         </div>
         <div class="profile-user-info">
           <h1>{{ user.lastName }} {{ user.firstName }}</h1>
@@ -66,7 +67,7 @@
               <router-link :to="{path: '/profile/' + friend.id}">
                 <h1>{{ friend.firstName }} {{ friend.lastName }}</h1>
               </router-link>
-              <button v-if="friend.id != $store.state.auth.user.id" type="button" class="btn btn-danger btn-sm" style="width: 75px; height: 30px;" @click="removeFriend(friend.id)">Sterge</button>
+              <button v-if="(friend.id != $store.state.auth.user.id) && ($route.params.id == $store.state.auth.user.id)" type="button" class="btn btn-danger btn-sm" style="width: 75px; height: 30px;" @click="removeFriend(friend.id)">Sterge</button>
               <div class="clearfix"></div>
             </div>
           </div>
@@ -79,9 +80,9 @@
     </b-modal>
     <b-modal id="modal-2" title="Evenimente" class="profile-friends-modal" size="lg" :show-close="false" data-backdrop="static" data-keyboard="false" centered scrollable ok-only ok-variant="secondary" ok-title="Inchide">
       <div class="profile-friend-modal-container" v-if="nrOfJoinedEvents != 0">
-        <div v-for="joinedEvent in joinedEvents" :key="joinedEvent.name">
-          <h2>{{ joinedEvent.name }} | {{ joinedEvent.location }}</h2>
-          <p>Data Inceput: {{ formatDate(joinedEvent.startDate) }} | Data Sfarsrit: {{ formatDate(joinedEvent.endDate) }}</p>
+        <div v-for="joinedEvent in joinedEvents" :key="joinedEvent.name" style="padding-top: 10px;">
+          <h2 style="font-size: 26px;">{{ joinedEvent.name }} | {{ joinedEvent.location }}</h2>
+          <p>Data Inceput: {{ formatDate(joinedEvent.startDate) }} | Data Sfarsit: {{ formatDate(joinedEvent.endDate) }}</p>
           <button v-if="joinedEvent.authorId == $store.state.auth.user.id" type="button" class="btn btn-danger btn-sm" style="width: 75px; height: 30px;" @click="removeJoinedEvent(joinedEvent.id)">Sterge</button>
         </div>
       </div>
@@ -191,6 +192,7 @@ export default {
         year: null,
         roleId: null,
         facultyId: null,
+        profileImage: null,
         faculty: Object,
         friendshipData: Object
       },
@@ -227,6 +229,13 @@ export default {
       return ""
     }
   },
+  mounted() {
+    let fileUpload = document.getElementById("FileUpload1")
+    let image = document.getElementById("imgFileUpload")
+    image.onclick = function () {
+      fileUpload.click()
+    }
+  },
   watch: {
     '$route.params': {
       handler() {
@@ -239,11 +248,7 @@ export default {
     initializeComponent: function () {
       this.$bvModal.hide("modal-1")
       this.$bvModal.hide("modal-2")
-      if (this.$route.params.id == this.$store.state.auth.user.id) {
-        this.populateUserFromSession()
-      } else {
-        this.populateUserFromDatabase()
-      }
+      this.populateUserFromDatabase()
       this.populateNrOfFriends()
       this.populateNrOfEvents()
       this.populateFaculties()
@@ -252,16 +257,42 @@ export default {
       this.loadUserPosts()
       this.loadUserEvents()
     },
+    handleImage: function (e) {
+      if (this.$route.params.id == this.$store.state.auth.user.id) {
+        const selectedImage = e.target.files[0]
+        this.createBase64Image(selectedImage)
+      }
+    },
+    createBase64Image(fileObject) {
+      let fileExtension = fileObject.name.split('.').pop()
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        this.image = e.target.result
+        this.uploadImage(fileExtension)
+      };
+      reader.readAsDataURL(fileObject)
+    },
+    uploadImage(fileExtension) {
+      const { image } = this
+      UserService.uploadProfileImage({ userId: this.$store.state.auth.user.id, image: image, fileExtension: fileExtension }).then(result => {
+        if (result.success === true) {
+          this.user.profileImage = result.profileImage
+          this.postsUserData.profileImage = result.profileImage
+        }
+      }).catch(() => {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la actualizarea imaginii de profil.")
+      })
+    },
     populateUserFromDatabase: function () {
       UtilsService.getUserProfileDetails({userId: this.$route.params.id, authUser: this.$store.state.auth.user.id}).then(user => {
         this.user = JSON.parse(JSON.stringify(user.data.userDetails))
-
         this.postsUserData = {
           lastName: user.data.userDetails.lastName,
           firstName: user.data.userDetails.firstName,
           facultyName: user.data.userDetails.faculty.name,
           displayRoleType: this.displayRoleType,
-          year: user.data.userDetails.year
+          year: user.data.userDetails.year,
+          profileImage: user.data.userDetails.profileImage
         }
 
         if (this.user.friendshipData.exists === true) {
@@ -275,26 +306,6 @@ export default {
       }).catch(() => {
         this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea paginii.")
       })
-    },
-    populateUserFromSession: function () {
-      this.user = {
-        id: this.$store.state.auth.user.id,
-        lastName: this.$store.state.auth.user.lastName,
-        firstName: this.$store.state.auth.user.firstName,
-        email: this.$store.state.auth.user.email,
-        year: this.$store.state.auth.user.year,
-        roleId: this.$store.state.auth.user.roleId,
-        facultyId: this.$store.state.auth.user.faculty.id,
-        faculty: this.$store.state.auth.user.faculty
-      }
-
-      this.postsUserData = {
-        lastName: this.$store.state.auth.user.lastName,
-        firstName: this.$store.state.auth.user.firstName,
-        facultyName: this.$store.state.auth.user.faculty.name,
-        displayRoleType: this.displayRoleType,
-        year: this.$store.state.auth.user.year
-      }
     },
     populateNrOfFriends: function() {
       UserService.getNrOfFriends({ userId: this.$route.params.id}).then(nrOfFriends => {
@@ -553,11 +564,13 @@ export default {
           .match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)
     },
     inlineBgImage() {
-      let src = "/images/default-user-background.jpg";
+      let src = "/images/default-user-background.png";
       let bgImage = require('@/assets' + src)
 
       return {
         backgroundImage: `url("${bgImage}")`,
+        backgroundRepeat: `no-repeat`,
+        backgroundSize: 'cover'
       }
     },
     randomNumber() {
@@ -571,12 +584,12 @@ export default {
 
 .profile-background {
   width: 100%;
-  height: 400px;
+  height: 500px;
 }
 
 .profile-user-box {
   position: relative;
-  background-color: #4BC970;
+  background-color: rgba(75, 201, 112, 0.95);
   border-radius: 30px;
   top: -175px;
   width: 550px;

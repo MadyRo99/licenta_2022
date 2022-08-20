@@ -1,13 +1,23 @@
 let express = require('express')
 let router = express.Router()
+const fs = require('fs')
+const utils = require('../utils')
+const { uploadFile } = require('../s3')
 
 const { authJwt } = require("../middleware")
 const eventsController = require("../controllers/EventsController")
 
 router.post('/createEvent', authJwt.verifyToken, function(req, res, next) {
-    eventsController.createEvent(req).then((response) => {
-        res.json(response)
-    })
+    let imageBase64Data = req.body.image.replace(/^data:image\/png;base64,/, "");
+    let fileName = utils.generateRandomName() + "." + req.body.imageFileExtension
+    let filePath = "uploads/" + fileName
+    fs.writeFile(filePath, imageBase64Data, 'base64', async function(err) {
+        const result = await uploadFile(filePath, fileName, "event")
+
+        eventsController.createEvent(req, result).then((response) => {
+            res.json(response)
+        })
+    });
 })
 
 router.post('/getUserEvents/:authorId', authJwt.verifyToken, function(req, res, next) {

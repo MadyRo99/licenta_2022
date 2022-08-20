@@ -5,7 +5,7 @@
         <fieldset>
           <legend style="margin: 25px 0px; padding-top: 15px;"><span class="number">1</span> Detalii Eveniment</legend>
 
-          <label for="name">Nume:</label>
+          <label for="name">Titlu:</label>
           <ValidationProvider name="name" rules="required|min:3|max:100">
             <div slot-scope="{ errors }" class="input-group">
               <input v-model="event.name" type="text" class="input--style-3" id="name" name="name" placeholder="Nume">
@@ -20,6 +20,16 @@
               <p class="errorMessage">{{ errors[0] }}</p>
             </div>
           </ValidationProvider>
+
+          <label for="eventImage">Imagine:</label>
+          <ValidationProvider name="eventImage">
+            <div slot-scope="{ errors }" class="input-group">
+              <input type="file" @change="handleImage" accept="image/png, image/gif, image/jpeg" class="input--style-3" id="eventImage" name="eventImage" placeholder="Imagine">
+              <p class="errorMessage">{{ errors[0] }}</p>
+            </div>
+          </ValidationProvider>
+
+          <br>
 
           <label for="startDate">Data Inceput:</label>
           <ValidationProvider name="startDate" rules="required">
@@ -62,6 +72,8 @@ export default {
   name: 'AddEvent',
   data() {
     return {
+      image: '',
+      imageFileExtension: '',
       event: {
         name: "",
         authorId: this.$store.state.auth.user.id,
@@ -89,9 +101,11 @@ export default {
           authorId: this.event.authorId,
           name: filter.clean(this.event.name),
           location: filter.clean(this.event.location),
-          content: filter.clean(this.event.location),
+          content: filter.clean(this.event.content),
           startDate: this.event.startDate,
-          endDate: this.event.endDate
+          endDate: this.event.endDate,
+          image: this.image,
+          imageFileExtension: this.imageFileExtension
         }
         EventsService.createEvent(createEventData).then(data => {
           this.successful = !!data.success
@@ -104,6 +118,20 @@ export default {
           this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare in timpul postarii.")
         })
       }
+    },
+    handleImage: function (e) {
+      const selectedImage = e.target.files[0]
+      this.createBase64Image(selectedImage)
+    },
+    createBase64Image(fileObject) {
+      let fileExtension = fileObject.name.split('.').pop()
+      const reader = new FileReader()
+      let self = this
+      reader.onload = (e) => {
+        self.image = e.target.result
+        self.imageFileExtension = fileExtension
+      };
+      reader.readAsDataURL(fileObject)
     },
     toast: function (toaster, variant, title, message) {
       this.$bvToast.toast(message, {

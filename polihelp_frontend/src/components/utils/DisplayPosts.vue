@@ -9,8 +9,8 @@
         </transition>
         <ul class="list-group" id="infinite-list">
           <div v-for="n in (posts.length + events.length)" :key="n - 1">
-            <Post v-if="posts[n - 1] != null" :postData="{...posts[n - 1], postLikes: posts[n - 1].userLikes.length}" :postUserData="{lastName: posts[n - 1].lastName, firstName: posts[n - 1].firstName, displayRoleType: posts[n - 1].roleName, facultyName: posts[n - 1].facultyName, year: posts[n - 1].year}" :userLikes="posts[n - 1].userLikes" @post-deleted="removePostFromList"></Post>
-            <Event v-if="events[n - 1] != null" :eventData="{...events[n - 1]}" :eventUserData="{lastName: events[n - 1].lastName, firstName: events[n - 1].firstName, displayRoleType: events[n - 1].roleName, facultyName: events[n - 1].facultyName, year: events[n - 1].year}" @event-deleted="removeEventFromList"></Event>
+            <Post v-if="posts[n - 1] != null" :postData="{...posts[n - 1], postLikes: posts[n - 1].userLikes.length}" :postUserData="{lastName: posts[n - 1].lastName, firstName: posts[n - 1].firstName, displayRoleType: posts[n - 1].roleName, facultyName: posts[n - 1].facultyName, year: posts[n - 1].year, profileImage: posts[n - 1].profileImage}" :userLikes="posts[n - 1].userLikes" @post-deleted="removePostFromList"></Post>
+            <Event v-if="events[n - 1] != null" :eventData="{...events[n - 1]}" :eventUserData="{lastName: events[n - 1].lastName, firstName: events[n - 1].firstName, displayRoleType: events[n - 1].roleName, facultyName: events[n - 1].facultyName, year: events[n - 1].year, profileImage: events[n - 1].profileImage}" :userEvents="events[n - 1].userEvents" @event-deleted="removeEventFromList"></Event>
           </div>
         </ul>
       </div>

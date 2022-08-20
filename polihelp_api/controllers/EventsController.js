@@ -4,14 +4,20 @@ const EventParticipants = db.eventParticipants
 const { Sequelize } = require("sequelize")
 const { QueryTypes } = require('sequelize')
 
-exports.createEvent = (req) => {
+exports.createEvent = (req, imageDetails) => {
+    let eventImageName = null
+    if (imageDetails.Key) {
+        eventImageName = "https://imagini-eveniment.s3.eu-central-1.amazonaws.com/" + imageDetails.key
+    }
+
     let createEvent = Event.build({
         name: req.body.name,
         authorId: req.body.authorId,
         location: req.body.location,
         startDate: req.body.startDate,
         endDate: req.body.endDate,
-        content: req.body.content,
+        image: eventImageName,
+        content: req.body.content
     })
 
     return createEvent.save().then(() => {
@@ -79,18 +85,19 @@ exports.getUserEvents = (req) => {
 }
 
 exports.getNewsFeedEvents = async (req) => {
-    let sql = "SELECT \"events\".\"id\" AS \"id\", \"events\".\"content\", \"events\".\"createdAt\", \"users\".\"id\" AS \"authorId\", \"users\".\"firstName\", \"users\".\"lastName\", \"users\".\"facultyId\", \"users\".\"roleId\", \"users\".\"year\", \"faculties\".\"name\" AS \"facultyName\", \"roles\".\"name\" AS \"roleName\" FROM \"events\" JOIN \"users\" ON \"events\".\"authorId\" = \"users\".\"id\" JOIN \"faculties\" ON \"users\".\"facultyId\" = \"faculties\".\"id\" JOIN \"roles\" ON \"users\".\"roleId\" = \"roles\".\"id\" ORDER BY \"events\".\"createdAt\" DESC offset " + req.body.offset + " limit 2;"
+    let sql = "SELECT \"events\".\"id\" AS \"id\", \"events\".\"content\", \"events\".\"createdAt\", \"events\".\"location\", \"events\".\"name\", \"events\".\"startDate\", \"events\".\"endDate\", \"users\".\"id\" AS \"authorId\", \"users\".\"firstName\", \"users\".\"lastName\", \"users\".\"facultyId\", \"users\".\"roleId\", \"users\".\"year\", \"users\".\"profileImage\", \"faculties\".\"name\" AS \"facultyName\", \"roles\".\"name\" AS \"roleName\" FROM \"events\" JOIN \"users\" ON \"events\".\"authorId\" = \"users\".\"id\" JOIN \"faculties\" ON \"users\".\"facultyId\" = \"faculties\".\"id\" JOIN \"roles\" ON \"users\".\"roleId\" = \"roles\".\"id\" ORDER BY \"events\".\"createdAt\" DESC offset " + req.body.offset + " limit 2;"
     let events = await db.sequelize.query(sql, {type: QueryTypes.SELECT})
 
     return Promise.all(events.map(theEvent =>
         EventParticipants.findAll({
             where: {
-                theEventId: theEvent.id
+                eventId: theEvent.id
             },
             raw: true
         }).then(userEvents => {
             let index = events.map(function(e) { return e.id; }).indexOf(theEvent.id);
             events[index].userEvents = userEvents
+            events[index].eventParticipants = userEvents.length.toString()
             return theEvent
         }).catch(err => {
             console.log("Eroare la selectarea participarilor: " + err)

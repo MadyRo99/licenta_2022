@@ -28,7 +28,7 @@
                 <li><a class="nav-link"><router-link :to="{ path: '/' }">NewsFeed</router-link></a></li>
                 <li><a class="nav-link"><router-link :to="{ path: '/profile/' + profileRouteUserId }">Profil</router-link></a></li>
                 <li><a class="nav-link"><router-link :to="{ path: '/addEvent' }">Adauga Eveniment</router-link></a></li>
-                <li><a class="nav-link"><router-link :to="{ path: '/addEvent' }">Mesagerie</router-link></a></li>
+                <li><a class="nav-link"><router-link :to="{ path: '/messages' }">Mesagerie</router-link></a></li>
                 <li><a class="nav-link"><router-link :to="{ path: '/logout' }">Deconectare</router-link></a></li>
               </ul>
             </nav>

@@ -5,6 +5,7 @@ const User = db.users
 const Faculty = db.faculties
 const UserInterest = db.userInterests
 const Friendships = db.friendships
+const { QueryTypes } = require('sequelize')
 const { Op } = require('@sequelize/core');
 
 let jwt = require("jsonwebtoken")
@@ -33,7 +34,8 @@ exports.getUser = (req) => {
             year: user.year,
             status: user.status,
             roleId: user.roleId,
-            faculty: user.faculty
+            faculty: user.faculty,
+            profileImage: user.profileImage ? user.profileImage : "https://imagini-profil.s3.eu-central-1.amazonaws.com/defaultUserImage.png"
         }
 
         return Friendships.findOne({
@@ -234,6 +236,17 @@ exports.getFriends = (req) => {
     })
 }
 
+exports.getFriendRequests = async (req) => {
+    let sql = "SELECT \"friendships\".\"id\" AS \"friendshipId\", \"users\".\"id\", \"users\".\"firstName\", \"users\".\"lastName\", \"users\".\"profileImage\" FROM \"users\" JOIN \"friendships\" ON \"friendships\".\"firstUserId\" = \"users\".\"id\" WHERE \"friendships\".\"approveDate\" = NULL AND \"friendships\".\"secondUserId\" = " + req.params.userId + ";"
+    let friendRequests = await db.sequelize.query(sql, {type: QueryTypes.SELECT})
+
+    return {
+        success: true,
+        data: friendRequests,
+        message: "Lista cu cereri de prietenie a fost returnata cu succes"
+    }
+}
+
 exports.addFriend = (req) => {
     if (req.body.isDelete === true) {
         return Friendships.destroy({
@@ -273,7 +286,6 @@ exports.addFriend = (req) => {
         })
 
         return addFriend.save().then((result) => {
-            console.log(result)
             if (!_.isNil(result)) {
                 return {
                     success: true,
@@ -314,6 +326,7 @@ exports.signup = (req) => {
             year: req.body.year,
             status: 1,
             roleId: req.body.roleId,
+            facultyId: req.body.facultyId
         }
 
         let createUser = User.build({
@@ -333,7 +346,8 @@ exports.signup = (req) => {
                         userDetails = {
                             ...userDetails,
                             id: result.id,
-                            faculty: faculty
+                            faculty: faculty,
+                            profileImage: "https://imagini-profil.s3.eu-central-1.amazonaws.com/defaultUserImage.png"
                         }
 
                         let token = jwt.sign({
@@ -407,7 +421,8 @@ exports.signin = (req, res) => {
             year: user.year,
             status: user.status,
             roleId: user.roleId,
-            faculty: user.faculty
+            faculty: user.faculty,
+            profileImage: user.profileImage ? user.profileImage : "https://imagini-profil.s3.eu-central-1.amazonaws.com/defaultUserImage.png"
         }
 
         let token = jwt.sign({
@@ -428,6 +443,43 @@ exports.signin = (req, res) => {
             data: null,
             message: err.message
         }
+    })
+}
+
+exports.uploadProfileImage = (req, imageDetails) => {
+    return User.findOne({
+        where: {
+            id: req.body.userId
+        }
+    }).then(user => {
+        if (!user) {
+            return {
+                success: false,
+                data: null,
+                message: "Utilizatorul nu a putut fi gasit."
+            }
+        }
+
+        let profileImageName = "https://imagini-profil.s3.eu-central-1.amazonaws.com/" + imageDetails.key
+
+        return User.update({profileImage: profileImageName}, {
+            where: {
+                id: req.body.userId
+            },
+            returning: true,
+            plain: true
+        }).then(() => {
+            return {
+                success: true,
+                profileImage: profileImageName,
+                message: "Imaginea utilizatorului a fost schimbata cu succes."
+            }
+        }).catch(() => {
+            return {
+                success: false,
+                message: "Imaginea utilizatorului nu a putut fi actualizata."
+            }
+        })
     })
 }
 
@@ -475,7 +527,8 @@ exports.update = (req, res) => {
                             ...userDetails,
                             id: user.id,
                             status: user.status,
-                            faculty: faculty
+                            faculty: faculty,
+                            profileImage: user.profileImage ? user.profileImage : "https://imagini-profil.s3.eu-central-1.amazonaws.com/defaultUserImage.png"
                         }
 
                         let token = jwt.sign({

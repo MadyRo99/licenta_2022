@@ -62,6 +62,9 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: 'cascade'
       }
     },
+    profileImage: {
+      type: DataTypes.STRING
+    },
     createdAt: {
       type: DataTypes.DATE,
       default: DataTypes.NOW

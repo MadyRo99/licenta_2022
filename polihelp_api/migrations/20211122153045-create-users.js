@@ -47,6 +47,9 @@ module.exports = {
           onDelete: 'cascade'
         }
       },
+      profileImage: {
+        type: Sequelize.STRING
+      },
       createdAt: {
         type: Sequelize.DATE,
         default: Sequelize.NOW

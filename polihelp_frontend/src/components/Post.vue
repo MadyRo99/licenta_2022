@@ -4,7 +4,8 @@
       <div class="post-user-left">
         <router-link :to="{path: '/profile/' + postData.authorId}">
           <div class="img-container-user">
-            <img src="@/assets/images/default-user.png" alt="default-user.png">
+            <img v-if="postUserData.profileImage" :src="postUserData.profileImage" alt="default-user.png">
+            <img v-else src="https://imagini-profil.s3.eu-central-1.amazonaws.com/defaultUserImage.png" alt="default-user.png">
           </div>
         </router-link>
         <div class="post-user-info">
@@ -23,12 +24,12 @@
             <img v-else src="@/assets/images/like.png" alt="like.png">
           </div>
         </div>
-        <div class="post-comments">
-          <h2>2</h2>
-          <div class="img-container-like">
-            <img src="@/assets/images/comment.png" alt="comment.png">
-          </div>
-        </div>
+<!--        <div class="post-comments">-->
+<!--          <h2>0</h2>-->
+<!--          <div class="img-container-like">-->
+<!--            <img src="@/assets/images/comment.png" alt="comment.png">-->
+<!--          </div>-->
+<!--        </div>-->
         <div class="clearfix"></div>
       </div>
       <div class="clearfix"></div>

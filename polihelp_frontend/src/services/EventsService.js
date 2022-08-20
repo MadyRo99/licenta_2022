@@ -9,6 +9,8 @@ class EventsService {
             startDate: eventContent.startDate,
             endDate: eventContent.endDate,
             content: eventContent.content,
+            image: eventContent.image,
+            imageFileExtension: eventContent.imageFileExtension,
             token: localStorage.getItem("jwt")
         }).then(response => {
             return response.data

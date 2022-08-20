@@ -25,7 +25,7 @@ exports.createPost = (req) => {
 }
 
 exports.getNewsFeedPosts = async (req) => {
-    let sql = "SELECT \"posts\".\"id\" AS \"id\", \"posts\".\"content\", \"posts\".\"createdAt\", \"users\".\"id\" AS \"authorId\", \"users\".\"firstName\", \"users\".\"lastName\", \"users\".\"facultyId\", \"users\".\"roleId\", \"users\".\"year\", \"faculties\".\"name\" AS \"facultyName\", \"roles\".\"name\" AS \"roleName\" FROM \"posts\" JOIN \"users\" ON \"posts\".\"authorId\" = \"users\".\"id\" JOIN \"faculties\" ON \"users\".\"facultyId\" = \"faculties\".\"id\" JOIN \"roles\" ON \"users\".\"roleId\" = \"roles\".\"id\" ORDER BY \"posts\".\"createdAt\" DESC offset " + req.body.offset + " limit 5;"
+    let sql = "SELECT \"posts\".\"id\" AS \"id\", \"posts\".\"content\", \"posts\".\"createdAt\", \"users\".\"id\" AS \"authorId\", \"users\".\"firstName\", \"users\".\"lastName\", \"users\".\"facultyId\", \"users\".\"roleId\", \"users\".\"year\", \"users\".\"profileImage\", \"faculties\".\"name\" AS \"facultyName\", \"roles\".\"name\" AS \"roleName\" FROM \"posts\" JOIN \"users\" ON \"posts\".\"authorId\" = \"users\".\"id\" JOIN \"faculties\" ON \"users\".\"facultyId\" = \"faculties\".\"id\" JOIN \"roles\" ON \"users\".\"roleId\" = \"roles\".\"id\" ORDER BY \"posts\".\"createdAt\" DESC offset " + req.body.offset + " limit 5;"
     let posts = await db.sequelize.query(sql, {type: QueryTypes.SELECT})
 
     return Promise.all(posts.map(post =>

@@ -1,5 +1,8 @@
 let express = require('express')
 let router = express.Router()
+const fs = require('fs')
+const utils = require('../utils')
+const { uploadFile } = require('../s3')
 
 const { authJwt } = require("../middleware")
 const authController = require("../controllers/AuthenticationController")
@@ -52,8 +55,28 @@ router.post('/getNrOfFriends/:userId', authJwt.verifyToken, function(req, res, n
   })
 })
 
+router.post('/uploadProfileImage', authJwt.verifyToken, async function(req, res, next) {
+  let imageBase64Data = req.body.image.replace(/^data:image\/png;base64,/, "");
+  let fileName = utils.generateRandomName() + "." + req.body.fileExtension
+  let filePath = "uploads/" + fileName
+  fs.writeFile(filePath, imageBase64Data, 'base64', async function(err) {
+    const result = await uploadFile(filePath, fileName, "profile")
+    if (result.Key != null) {
+      authController.uploadProfileImage(req, result).then((response) => {
+        res.json(response)
+      })
+    }
+  });
+})
+
 router.post('/getFriends/:userId', authJwt.verifyToken, function(req, res, next) {
   authController.getFriends(req).then((response) => {
+    res.json(response)
+  })
+})
+
+router.post('/getFriendRequests/:userId', authJwt.verifyToken, function(req, res, next) {
+  authController.getFriendRequests(req).then((response) => {
     res.json(response)
   })
 })

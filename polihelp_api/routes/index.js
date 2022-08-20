@@ -35,7 +35,6 @@ router.get('/getInterestsByUser/:userId', function(req, res, next) {
 });
 
 router.post('/getPostsAndEventsCount', authJwt.verifyToken, function(req, res, next) {
-  console.log("am ajuns")
   utilsController.getPostsAndEventsCount().then(count => {
     res.json(count)
   }).catch(err => {

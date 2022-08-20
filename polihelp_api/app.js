@@ -4,6 +4,7 @@ const path = require('path')
 const cookieParser = require('cookie-parser')
 const logger = require('morgan')
 const cors = require("cors")
+const Pusher = require("pusher");
 
 const indexRouter = require('./routes/index')
 const usersRouter = require('./routes/users')
@@ -13,12 +14,26 @@ const bodyParser = require("body-parser")
 
 const app = express();
 
+app.use(cors())
 app.use(logger('dev'))
-app.use(express.json())
-app.use(bodyParser.json())
-app.use(express.urlencoded({ extended: false }))
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
+
+const pusher = new Pusher({
+  appId: "1441973",
+  key: "43261e40347e6e4dbbcc",
+  secret: "7510cf51a81460647e37",
+  cluster: "eu",
+  useTLS: true
+});
+
+pusher.trigger("my-channel", "my-event", {
+  message: "hello world"
+}).then(r => {
+  console.log(r)
+});
 
 // Add headers before the routes are defined
 app.use(function (req, res, next) {

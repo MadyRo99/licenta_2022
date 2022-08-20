@@ -56,6 +56,14 @@ const router = new Router({
             }
         },
         {
+            path: "/notifications",
+            name: "notifications",
+            component: () => import("./components/views/Notifications"),
+            meta: {
+                middleware: authRequired
+            }
+        },
+        {
             path: "/profile/:id",
             name: "profile",
             component: () => import("./components/views/Profile"),
