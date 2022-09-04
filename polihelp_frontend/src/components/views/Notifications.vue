@@ -1,85 +1,74 @@
 <template>
   <div id="notifications">
     <div class="notifications-container">
-      <h2 id="friend-requests-title">Cereri de prietenie</h2>
+      <h2 id="friend-requests-title">Cereri de prietenie <span class="badge badge-light">{{ pendingFriendships.length }}</span></h2>
       <div class="friends-list">
-<!--        <h1>Nu exista cereri de prietenie la momentul actual</h1>-->
-        <div class="friend-request-container">
-          <h2>Danescu Madalin</h2>
-          <div class="img-container">
-            <img src="https://imagini-profil.s3.eu-central-1.amazonaws.com/7IT87AUIJLHxpG71DOCVbi7Xk8wjUSWb.png" alt="default-friend-request.png">
-          </div>
+        <h1 v-if="!pendingFriendships.length">Nu exista cereri de prietenie la momentul actual</h1>
+        <div class="friend-request-container" v-else v-for="friendship in pendingFriendships" :key="friendship.friendshipId">
+          <router-link :to="{path: '/profile/' + friendship.id}">
+            <h2>{{ friendship.firstName }} {{ friendship.lastName }}</h2>
+          </router-link>
+          <router-link :to="{path: '/profile/' + friendship.id}">
+            <div class="img-container">
+              <img :src="friendship.profileImage" alt="default-friend-request.png">
+            </div>
+          </router-link>
           <div class="request-buttons">
-            <button type="button" class="btn btn-success accept-button">Accepta</button>
-            <button type="button" class="btn btn-danger decline-button">Refuza</button>
+            <button type="button" class="btn btn-success accept-button" @click="acceptFriendRequest(friendship.friendshipId)">Accepta</button>
+            <button type="button" class="btn btn-danger decline-button" @click="rejectFriendRequest(friendship.friendshipId)">Refuza</button>
             <div class="clearfix"></div>
           </div>
         </div>
-<!--        <div class="friend-request-container">-->
-<!--          <h2>Danescu Madalin</h2>-->
-<!--          <div class="img-container">-->
-<!--            <img src="https://imagini-profil.s3.eu-central-1.amazonaws.com/7IT87AUIJLHxpG71DOCVbi7Xk8wjUSWb.png" alt="default-friend-request.png">-->
-<!--          </div>-->
-<!--          <div class="request-buttons">-->
-<!--            <button type="button" class="btn btn-success accept-button">Accepta</button>-->
-<!--            <button type="button" class="btn btn-danger decline-button">Refuza</button>-->
-<!--            <div class="clearfix"></div>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--        <div class="friend-request-container">-->
-<!--          <h2>Danescu Madalin</h2>-->
-<!--          <div class="img-container">-->
-<!--            <img src="https://imagini-profil.s3.eu-central-1.amazonaws.com/7IT87AUIJLHxpG71DOCVbi7Xk8wjUSWb.png" alt="default-friend-request.png">-->
-<!--          </div>-->
-<!--          <div class="request-buttons">-->
-<!--            <button type="button" class="btn btn-success accept-button">Accepta</button>-->
-<!--            <button type="button" class="btn btn-danger decline-button">Refuza</button>-->
-<!--            <div class="clearfix"></div>-->
-<!--          </div>-->
-<!--        </div>-->
       </div>
     </div>
   </div>
 </template>
 
-<script src="https://js.pusher.com/7.2/pusher.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script>
-import Pusher from "pusher-js"
 import UserService from "../../services/authentication/UserService";
 
 export default {
   name: 'Notifications',
   data() {
     return {
-      messages: []
+      pendingFriendships: []
     }
   },
   mounted() {
     this.loadFriendRequests()
-
-
-
-
-
-    let pusher = new Pusher('43261e40347e6e4dbbcc', {
-      cluster: 'eu'
-    });
-
-    this.messages = []
-
-    let channel = pusher.subscribe('my-channel');
-    channel.bind('my-event', function(data) {
-      console.log(JSON.stringify(data))
-      this.messages = JSON.stringify(data)
-    })
   },
   methods: {
     loadFriendRequests: function () {
-      UserService.getFriendRequests({ userId: this.$store.state.auth.user.id }).then(requests => {
-        console.log(requests)
+      UserService.getFriendRequests({ userId: this.$store.state.auth.user.id }).then(friendships => {
+        this.pendingFriendships = JSON.parse(JSON.stringify(friendships.data.data))
       }).catch(() => {
         this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la incarcarea cererilor de prietenie.")
+      })
+    },
+    acceptFriendRequest: function (id) {
+      UserService.acceptFriendRequest({ friendshipId: id }).then(result => {
+        if (result.success == true) {
+          let acceptIndex = this.pendingFriendships.findIndex((request) => request.friendshipId == id)
+          this.pendingFriendships.splice(acceptIndex, 1);
+          this.toast('b-toaster-bottom-right', "success", "Succes", "Cererea de prietenie a fost acceptata")
+        } else {
+          this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la acceptarea cererii de prietenie.")
+        }
+      }).catch(() => {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la acceptarea cererii de prietenie.")
+      })
+    },
+    rejectFriendRequest: function (id) {
+      UserService.rejectFriendRequest({ friendshipId: id }).then(result => {
+        if (result.success == true) {
+          let rejectedIndex = this.pendingFriendships.findIndex((request) => request.friendshipId == id)
+          this.pendingFriendships.splice(rejectedIndex, 1);
+          this.toast('b-toaster-bottom-right', "info", "Succes", "Cererea de prietenie a fost refuzată")
+        } else {
+          this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la refuzarea cererii de prietenie.")
+        }
+      }).catch(() => {
+        this.toast('b-toaster-bottom-right', "danger", "Eroare", "A aparut o eroare la refuzarea cererii de prietenie.")
       })
     },
     toast: function (toaster, variant, title, message) {
@@ -157,6 +146,10 @@ export default {
   padding-bottom: 5px;
   color: #FFFFFF;
   text-align: center;
+}
+
+.friend-request-container a:hover {
+  text-decoration-color: #FFFFFF;
 }
 
 .request-buttons {

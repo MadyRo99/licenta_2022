@@ -23,6 +23,10 @@ module.exports = {
         interest: 'Fotografie',
         userId: 3
       },
+      {
+        interest: 'Alergat',
+        userId: 3
+      },
     ], {});
   },
 

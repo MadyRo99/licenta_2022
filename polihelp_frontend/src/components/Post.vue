@@ -24,20 +24,16 @@
             <img v-else src="@/assets/images/like.png" alt="like.png">
           </div>
         </div>
-<!--        <div class="post-comments">-->
-<!--          <h2>0</h2>-->
-<!--          <div class="img-container-like">-->
-<!--            <img src="@/assets/images/comment.png" alt="comment.png">-->
-<!--          </div>-->
-<!--        </div>-->
         <div class="clearfix"></div>
       </div>
       <div class="clearfix"></div>
       <div class="post-faculty">
         <h3>
           {{ postUserData.displayRoleType }} la {{ postUserData.facultyName }}
-          <br>
-          {{ postUserData.year }}
+          <div v-if="this.$store.state.auth.user.roleId != 3">
+            <br>
+            {{ postUserData.year }}
+          </div>
         </h3>
       </div>
       <hr color="#FFFFFF">

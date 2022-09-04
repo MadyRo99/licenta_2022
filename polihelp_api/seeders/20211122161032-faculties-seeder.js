@@ -11,6 +11,45 @@ module.exports = {
       },
       {
         name: 'Facultatea Transporturi'
+      },
+      {
+        name: 'Facultatea de Inginerie Electrica'
+      },
+      {
+        name: 'Facultatea de Energetica'
+      },
+      {
+        name: 'Facultatea de Inginerie Mecanica si Mecatronica'
+      },
+      {
+        name: 'Facultatea de Inginerie Industriala si Robotica'
+      },
+      {
+        name: 'Facultatea de Ingineria Sistemelor Biotehnice'
+      },
+      {
+        name: 'Facultatea de Inginerie Aerospatiala'
+      },
+      {
+        name: 'Facultatea de Stiinta si Ingineria Materialelor'
+      },
+      {
+        name: 'Facultatea de Inginerie Chimica si Biotehnologii'
+      },
+      {
+        name: 'Facultatea de Inginerie in Limbi Straine'
+      },
+      {
+        name: 'Facultatea de Stiinte Aplicate'
+      },
+      {
+        name: 'Facultatea de Inginerie Medicala'
+      },
+      {
+        name: 'Facultatea de Antreprenoriat, Ingineria si Managementul Afacerilor'
+      },
+      {
+        name: 'Facultatea de Formare pentru Cariera Didactica si Stiinte Socio-Umane'
       }
     ], {});
   },

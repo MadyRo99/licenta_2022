@@ -35,6 +35,24 @@ class UserService {
         })
     }
 
+    acceptFriendRequest(data) {
+        return http.post("users/acceptFriendRequest/", {
+            friendshipId: data.friendshipId,
+            token: localStorage.getItem("jwt")
+        }).then(response => {
+            return response.data
+        })
+    }
+
+    rejectFriendRequest(data) {
+        return http.post("users/rejectFriendRequest/", {
+            friendshipId: data.friendshipId,
+            token: localStorage.getItem("jwt")
+        }).then(response => {
+            return response.data
+        })
+    }
+
     removeFriend(data) {
         return http.post("users/removeFriend/", {
             removeFriendUserId: data.removeFriendUserId,

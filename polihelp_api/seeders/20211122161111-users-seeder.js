@@ -6,11 +6,12 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.bulkInsert('users', [
       {
-        firstName: 'Madalin',
+        firstName: 'Ion-Madalin',
         lastName: 'Danescu',
         email: 'madalindanescu99@gmail.com',
         password: bcrypt.hashSync("parolamea", 10),
         year: 'Anul 4 Licenta',
+        profileImage: 'https://imagini-profil.s3.eu-central-1.amazonaws.com/pJ6wbqW4DYLE902gr0ZOVFvEIlZIlXAF.png',
         status: 1,
         roleId: 1,
         facultyId: 2
@@ -18,20 +19,22 @@ module.exports = {
       {
         firstName: 'Mihai',
         lastName: 'Popescu',
-        email: 'mihaipopescu00@gmail.com',
+        email: 'mihaipopescu98@gmail.com',
         password: bcrypt.hashSync("parolamea", 10),
-        year: 'Anul 3 Licenta',
+        year: 'Anul 1 Master',
+        profileImage: 'https://imagini-profil.s3.eu-central-1.amazonaws.com/PsohcXEyBi4CYGZd6EgsTY4eyLj8YVkX.png',
         status: 1,
-        roleId: 1,
+        roleId: 2,
         facultyId: 1
       },
       {
         firstName: 'Alexandra',
-        lastName: 'Radulescu',
-        email: 'alexandraradulescu@gmail.com',
+        lastName: 'Popescu',
+        email: 'alexandrapopescu@gmail.com',
         password: bcrypt.hashSync("parolamea", 10),
-        year: 'Anul 2 Licenta',
-        status: 0,
+        year: null,
+        profileImage: 'https://imagini-profil.s3.eu-central-1.amazonaws.com/MFvdTRXPsN4vkAX4iwMiLBsRiA7qOKzp.png',
+        status: 1,
         roleId: 3,
         facultyId: 2
       }

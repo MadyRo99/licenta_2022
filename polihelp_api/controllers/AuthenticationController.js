@@ -5,6 +5,7 @@ const User = db.users
 const Faculty = db.faculties
 const UserInterest = db.userInterests
 const Friendships = db.friendships
+const { Sequelize } = require("sequelize")
 const { QueryTypes } = require('sequelize')
 const { Op } = require('@sequelize/core');
 
@@ -205,7 +206,7 @@ exports.getFriends = (req) => {
                 where: {
                     id: usersIds
                 },
-                attributes: ['id', 'firstName', 'lastName'],
+                attributes: ['id', 'firstName', 'lastName', 'profileImage'],
                 raw: true
             }).then((users) => {
                 if (!_.isEmpty(users)) {
@@ -237,7 +238,7 @@ exports.getFriends = (req) => {
 }
 
 exports.getFriendRequests = async (req) => {
-    let sql = "SELECT \"friendships\".\"id\" AS \"friendshipId\", \"users\".\"id\", \"users\".\"firstName\", \"users\".\"lastName\", \"users\".\"profileImage\" FROM \"users\" JOIN \"friendships\" ON \"friendships\".\"firstUserId\" = \"users\".\"id\" WHERE \"friendships\".\"approveDate\" = NULL AND \"friendships\".\"secondUserId\" = " + req.params.userId + ";"
+    let sql = "SELECT \"friendships\".\"id\" AS \"friendshipId\", \"users\".\"id\", \"users\".\"firstName\", \"users\".\"lastName\", \"users\".\"profileImage\" FROM \"users\" JOIN \"friendships\" ON \"friendships\".\"firstUserId\" = \"users\".\"id\" WHERE \"friendships\".\"approveDate\" IS NULL AND \"friendships\".\"secondUserId\" = " + req.params.userId + ";"
     let friendRequests = await db.sequelize.query(sql, {type: QueryTypes.SELECT})
 
     return {
@@ -297,7 +298,7 @@ exports.addFriend = (req) => {
                     message: "A aparut o eroare la trimiterea cererii de prietenie."
                 }
             }
-        }).catch((sth) => {
+        }).catch(() => {
             return {
                 success: false,
                 message: "A aparut o eroare la trimiterea cererii de prietenie."
@@ -363,7 +364,7 @@ exports.signup = (req) => {
                             message: "Utilizatorul a fost creat cu succes!"
                         }
                     }
-                }).catch(err => {
+                }).catch(() => {
                     return {
                         success: false,
                         message: "A aparut o problema pe parcursul inregistrarii utilizatorului."
@@ -385,7 +386,7 @@ exports.signup = (req) => {
     })
 }
 
-exports.signin = (req, res) => {
+exports.signin = (req) => {
     return User.findOne({
         include: Faculty,
         where: {
@@ -483,7 +484,7 @@ exports.uploadProfileImage = (req, imageDetails) => {
     })
 }
 
-exports.update = (req, res) => {
+exports.update = (req) => {
     return User.findOne({
         where: {
             id: req.body.id
@@ -544,7 +545,7 @@ exports.update = (req, res) => {
                             message: "Actualizarea profilului a fost realizata cu succes."
                         }
                     }
-                }).catch(err => {
+                }).catch(() => {
                     return {
                         success: false,
                         message: "A aparut o problema pe parcursul actualizarii profilului."
@@ -566,7 +567,7 @@ exports.update = (req, res) => {
     })
 }
 
-exports.updateInterests = (req, res) => {
+exports.updateInterests = (req) => {
     return UserInterest.destroy({
         where: {
             userId: req.body.userId
@@ -590,6 +591,42 @@ exports.updateInterests = (req, res) => {
             success: false,
             data: null,
             message: err.message
+        }
+    })
+}
+
+exports.acceptFriendRequest = (req) => {
+    return Friendships.update({approveDate: Sequelize.fn('NOW')}, {
+        where: {
+            id: req.body.friendshipId
+        }
+    }).then(() => {
+        return {
+            success: true,
+            message: "Cererea de prietenie a fost acceptata cu succes."
+        }
+    }).catch(() => {
+        return {
+            success: false,
+            message: "A aparut o eroare in timpul acceptarii cererii de prietenie"
+        }
+    })
+}
+
+exports.rejectFriendRequest = (req) => {
+    return Friendships.destroy({
+        where: {
+            id: req.body.friendshipId
+        }
+    }).then(() => {
+        return {
+            success: true,
+            message: "Cererea de prietenie a fost refuzata cu succes."
+        }
+    }).catch(() => {
+        return {
+            success: false,
+            message: "A aparut o eroare in timpul refuzarii cererii de prietenie"
         }
     })
 }

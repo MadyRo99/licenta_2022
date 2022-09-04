@@ -29,14 +29,16 @@
       <div class="event-faculty">
         <h3>
           {{ eventUserData.displayRoleType }} la {{ eventUserData.facultyName }}
-          <br>
-          {{ eventUserData.year }}
+          <div v-if="this.$store.state.auth.user.roleId != 3">
+            <br>
+            {{ eventUserData.year }}
+          </div>
         </h3>
       </div>
       <h1 class="eventName">{{ eventData.name }} | {{ eventData.location}}</h1>
       <h2 class="eventDetails">Data Inceput: <b>{{ formatDate(eventData.startDate) }}</b> | Data Sfarsit: <b>{{ formatDate(eventData.endDate) }}</b></h2>
       <div class="event-image-container">
-        <img src="https://imagini-eveniment.s3.eu-central-1.amazonaws.com/2ZfsxY4qPmnTpxetOrgUP5vcq6c3TKM4.png" alt="default-event.png">
+        <img :src=eventData.image alt="default-event.png">
       </div>
       <br>
       <p style="padding-bottom: 5px;">

@@ -31,7 +31,7 @@ class AuthService {
             email: user.email,
             year: user.year,
             roleId: user.roleId,
-            facultyId: user.facultyId
+            facultyId: user.faculty.id
         })
     }
 

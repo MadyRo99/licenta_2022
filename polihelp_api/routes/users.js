@@ -81,4 +81,16 @@ router.post('/getFriendRequests/:userId', authJwt.verifyToken, function(req, res
   })
 })
 
+router.post('/acceptFriendRequest', authJwt.verifyToken, function(req, res, next) {
+  authController.acceptFriendRequest(req).then((response) => {
+    res.json(response)
+  })
+})
+
+router.post('/rejectFriendRequest', authJwt.verifyToken, function(req, res, next) {
+  authController.rejectFriendRequest(req).then((response) => {
+    res.json(response)
+  })
+})
+
 module.exports = router

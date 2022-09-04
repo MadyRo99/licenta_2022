@@ -1,6 +1,6 @@
 <template>
   <div id="addEvent">
-    <ValidationObserver v-slot="{ handleSubmit }">
+    <ValidationObserver v-if="this.$store.state.auth.user.roleId == 3" v-slot="{ handleSubmit }">
       <form name="form auth" @submit.prevent="handleSubmit(onSubmit)" method="POST" style="background-color: #FFFFFF;">
         <fieldset>
           <legend style="margin: 25px 0px; padding-top: 15px;"><span class="number">1</span> Detalii Eveniment</legend>
@@ -59,6 +59,9 @@
         <button type="submit">Adauga Eveniment</button>
       </form>
     </ValidationObserver>
+    <div v-else class="not-allowed-container">
+      <h1>Doar profesorii au dreptul de a adăuga noi evenimente</h1>
+    </div>
   </div>
 </template>
 
@@ -150,5 +153,23 @@ export default {
 <style scoped>
 #addEvent {
   margin-top: 50px;
+}
+
+.not-allowed-container {
+  width: 1000px;
+  height: 300px;
+  margin: 0 auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  background-color: #18191A;
+  border-radius: 10px;
+}
+
+h1 {
+  color: #FFFFFF;
+  font-size: 24px;
+  text-align: center;
+  padding-top: 130px;
 }
 </style>

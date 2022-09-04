@@ -70,6 +70,11 @@ const router = new Router({
             meta: {
                 middleware: authRequired
             }
+        },
+        {
+            path: "*",
+            name: "pageNotFound",
+            component: () => import("./components/views/PageNotFound")
         }
     ]
 })

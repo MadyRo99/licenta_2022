@@ -2,26 +2,22 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.bulkInsert('post_likes', [
+    await queryInterface.bulkInsert('event_participants', [
       {
         userId: 1,
-        postId: 3
+        eventId: 2
       },
       {
         userId: 2,
-        postId: 1
+        eventId: 1
       },
       {
         userId: 2,
-        postId: 6
+        eventId: 3
       },
       {
         userId: 3,
-        postId: 4
-      },
-      {
-        userId: 3,
-        postId: 5
+        eventId: 1
       }
     ], {});
   },

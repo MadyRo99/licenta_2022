@@ -29,13 +29,10 @@
           </div>
         </div>
         <div class="row justify-content-center" v-else>
-          <div class="col-6">
+          <div class="col-12">
             <button type="button" class="btn btn-primary" @click="addFriend(false)" v-if="isFriend == false">Adauga Prieten</button>
             <button type="button" class="btn btn-primary" @click="addFriend(true)" v-else-if="isFriend == true && isPending == false">Sterge Prieten</button>
             <button type="button" class="btn btn-primary" @click="addFriend(true)" v-else-if="isFriend == true && isPending == true">Anuleaza Cerere Prietenie</button>
-          </div>
-          <div class="col-6">
-            <button type="button" class="btn btn-primary">Chat</button>
           </div>
         </div>
         <div class="row justify-content-center">
@@ -49,8 +46,8 @@
       </div>
       <div class="profile-user-posts">
         <div v-for="n in (posts.length + events.length)" :key="n - 1">
-          <Post v-if="posts[n - 1] != null" :key="posts[n - 1].id" :postData="posts[n - 1]" :postUserData="postsUserData" :userLikes="userLikes" @post-deleted="removePostFromList"></Post>
-          <Event v-if="events[n - 1] != null" :key="events[n - 1].id" :eventData="events[n - 1]" :eventUserData="postsUserData" :userEvents="userEvents" @event-deleted="removeEventFromList"></Event>
+          <Post v-if="posts[n - 1] != null" :key="randomNumber(posts[n - 1])" :postData="posts[n - 1]" :postUserData="postsUserData" :userLikes="userLikes" @post-deleted="removePostFromList"></Post>
+          <Event v-if="events[n - 1] != null" :key="randomNumber(events[n - 1])" :eventData="events[n - 1]" :eventUserData="postsUserData" :userEvents="userEvents" @event-deleted="removeEventFromList"></Event>
         </div>
       </div>
     </div>
@@ -59,7 +56,7 @@
         <div class="profile-friend" v-for="friend in friendsData" :key="friend.id">
           <router-link :to="{path: '/profile/' + friend.id}">
             <div class="img-container">
-              <img src="@/assets/images/upb_register.jpg" alt="default-user.png">
+              <img :src="friend.profileImage" alt="default-user.png">
             </div>
           </router-link>
           <div class="friend-details">
@@ -127,7 +124,7 @@
 
             <label for="faculty">Facultate</label>
             <ValidationProvider>
-              <select v-model="user.facultyId" name="faculty" id="faculty">
+              <select v-model="user.faculty.id" id="faculty">
                 <option v-for="faculty in faculties" :key="faculty.id" :value="faculty.id">{{ faculty.name }}</option>
               </select>
             </ValidationProvider>
@@ -487,7 +484,7 @@ export default {
         return false
       }
 
-      if (!this.user.facultyId) {
+      if (!this.user.faculty.id) {
         this.toast('b-toaster-bottom-right', "danger", "Eroare", 'Campul pentru facultate este obligatoriu')
         return false
       }
@@ -565,6 +562,7 @@ export default {
     },
     inlineBgImage() {
       let src = "/images/default-user-background.png";
+      // Referinta imagine: https://www.wall-street.ro/image_thumbs/thumbs/909/9097533211a47022492a9b810e48868e-1063x560-00-86.jpg?v=1653211890
       let bgImage = require('@/assets' + src)
 
       return {

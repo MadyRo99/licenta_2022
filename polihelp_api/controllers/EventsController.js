@@ -85,7 +85,7 @@ exports.getUserEvents = (req) => {
 }
 
 exports.getNewsFeedEvents = async (req) => {
-    let sql = "SELECT \"events\".\"id\" AS \"id\", \"events\".\"content\", \"events\".\"createdAt\", \"events\".\"location\", \"events\".\"name\", \"events\".\"startDate\", \"events\".\"endDate\", \"users\".\"id\" AS \"authorId\", \"users\".\"firstName\", \"users\".\"lastName\", \"users\".\"facultyId\", \"users\".\"roleId\", \"users\".\"year\", \"users\".\"profileImage\", \"faculties\".\"name\" AS \"facultyName\", \"roles\".\"name\" AS \"roleName\" FROM \"events\" JOIN \"users\" ON \"events\".\"authorId\" = \"users\".\"id\" JOIN \"faculties\" ON \"users\".\"facultyId\" = \"faculties\".\"id\" JOIN \"roles\" ON \"users\".\"roleId\" = \"roles\".\"id\" ORDER BY \"events\".\"createdAt\" DESC offset " + req.body.offset + " limit 2;"
+    let sql = "SELECT \"events\".\"id\" AS \"id\", \"events\".\"content\", \"events\".\"image\" AS \"image\", \"events\".\"createdAt\", \"events\".\"location\", \"events\".\"name\", \"events\".\"startDate\", \"events\".\"endDate\", \"users\".\"id\" AS \"authorId\", \"users\".\"firstName\", \"users\".\"lastName\", \"users\".\"facultyId\", \"users\".\"roleId\", \"users\".\"year\", \"users\".\"profileImage\", \"faculties\".\"name\" AS \"facultyName\", \"roles\".\"name\" AS \"roleName\" FROM \"events\" JOIN \"users\" ON \"events\".\"authorId\" = \"users\".\"id\" JOIN \"faculties\" ON \"users\".\"facultyId\" = \"faculties\".\"id\" JOIN \"roles\" ON \"users\".\"roleId\" = \"roles\".\"id\" ORDER BY \"events\".\"createdAt\" DESC offset " + req.body.offset + " limit 2;"
     let events = await db.sequelize.query(sql, {type: QueryTypes.SELECT})
 
     return Promise.all(events.map(theEvent =>
